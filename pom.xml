@@ -30,8 +30,8 @@
         <java.version>21</java.version>
         <testcontainers.version>1.19.3</testcontainers.version>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        <sonar.organization>gb-oliveira</sonar.organization>
-        <sonar.projectKey>gb-oliveira_library-catalog-api</sonar.projectKey>
+        <sonar.organization>oliveira-gb</sonar.organization>
+        <sonar.projectKey>Oliveira-GB_library-catalog-api</sonar.projectKey>
         <sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
         <sonar.coverage.exclusions>**/config/**,**/dto/**,**/exception/**,**/entity/**</sonar.coverage.exclusions>
     </properties>
