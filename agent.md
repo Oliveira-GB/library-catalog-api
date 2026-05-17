@@ -20,18 +20,18 @@ A User Story (US) or task can only be marked as completed `[x]` if it meets ALL 
 * **Architectural Adherence:** The generated code strictly follows the layer rules and restrictions defined in Blocks 2 and 3 of this document.
 
 ## 3. Current Focus (Active Task)
-* **Global Status:** [PLANNING]
-* **Active Epic / US:** [Awaiting Start of Epic 1]
-* **Immediate Goal:** [Configure base environment and start US 1.1]
+* **Global Status:** [READY]
+* **Active Epic / US:** [Epic 1 - Central Catalog Management]
+* **Immediate Goal:** [Start US 1.1 - Category Registration]
 
 ## 4. Decision Log & Troubleshooting
-* [YYYY-MM-DD] [DECISION]: [Empty]
+* [2026-05-17] [DECISION]: Using .env file for environment variables instead of hardcoded values in docker-compose.yml (security best practice)
 * [YYYY-MM-DD] [BLOCKER RESOLVED]: [Empty]
 
 ## 5. Roadmap & Development Schedule (MVP Scope)
 
 ### Initial Infrastructure & Base Setup
-- [ ] Isolated environment configuration (Docker Compose and PostgreSQL).
+- [x] Isolated environment configuration (Docker Compose and PostgreSQL).
 - [ ] Repository initialization, base packages, and Flyway setup with initial Migration.
 - [ ] Implementation of standard `RestControllerAdvice` (RFC 7807) and static security configuration (Basic Auth with BCrypt for Admin routes).
 
