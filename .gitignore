@@ -36,3 +36,44 @@ build/
 .env
 .env.local
 .env.*.local
+.env.development
+.env.production
+.env.test
+
+### Application Configuration Secrets ###
+application-*.yml
+application-*.yaml
+!application-example.yml
+!application-template.yml
+!application-test.yml
+!application-test.yaml
+secrets/
+credentials.json
+*.key
+*.pem
+*.p12
+*.pfx
+keystore/
+truststore/
+
+### Log Files ###
+*.log
+logs/
+log/
+*.log.*
+
+### Temporary Files ###
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+### Build Artifacts ###
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz

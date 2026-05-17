@@ -26,12 +26,14 @@ A User Story (US) or task can only be marked as completed `[x]` if it meets ALL 
 
 ## 4. Decision Log & Troubleshooting
 * [2026-05-17] [DECISION]: Using .env file for environment variables instead of hardcoded values in docker-compose.yml (security best practice)
+* [2026-05-17] [DECISION]: SonarQube Cloud integration with 70% minimum code coverage threshold, JaCoCo for coverage reporting
 * [YYYY-MM-DD] [BLOCKER RESOLVED]: [Empty]
 
 ## 5. Roadmap & Development Schedule (MVP Scope)
 
 ### Initial Infrastructure & Base Setup
 - [x] Isolated environment configuration (Docker Compose and PostgreSQL).
+- [x] SonarQube Cloud integration with code coverage reporting (JaCoCo).
 - [ ] Repository initialization, base packages, and Flyway setup with initial Migration.
 - [ ] Implementation of standard `RestControllerAdvice` (RFC 7807) and static security configuration (Basic Auth with BCrypt for Admin routes).
 
