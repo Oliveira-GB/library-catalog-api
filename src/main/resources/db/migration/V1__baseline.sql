@@ -1,0 +1,5 @@
+-- Flyway Baseline Migration
+-- This migration establishes the baseline for the library catalog database.
+-- It creates the flyway_schema_history table to track future migrations.
+-- No domain tables are created here as per project requirements.
+-- All structural changes must be managed exclusively by Flyway migrations.

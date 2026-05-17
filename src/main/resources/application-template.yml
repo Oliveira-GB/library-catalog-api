@@ -1,0 +1,28 @@
+# Application Configuration Template
+# 
+# This file demonstrates the required environment variables for running the application.
+# Copy this file to create environment-specific configurations or set variables directly.
+#
+# IMPORTANT: Never commit files with real credentials to version control!
+
+spring:
+  config:
+    activate:
+      on-profile: template
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+
+# Required Environment Variables:
+# DB_URL=jdbc:postgresql://localhost:5432/catalog
+# DB_USER=your_database_username
+# DB_PASSWORD=your_database_password
+# SERVER_PORT=8080 (optional, defaults to 8080)
+#
+# To run with dev profile:
+# export DB_URL=jdbc:postgresql://localhost:5432/catalog
+# export DB_USER=catalog
+# export DB_PASSWORD=catalog
+# ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
