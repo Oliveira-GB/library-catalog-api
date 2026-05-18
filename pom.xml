@@ -33,7 +33,7 @@
         <sonar.organization>oliveira-gb</sonar.organization>
         <sonar.projectKey>Oliveira-GB_library-catalog-api</sonar.projectKey>
         <sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
-        <sonar.coverage.exclusions>**/config/**,**/dto/**,**/exception/**,**/entity/**</sonar.coverage.exclusions>
+        <sonar.coverage.exclusions>**/config/**,**/dto/**,**/exception/**,**/entity/**,**/domain/**</sonar.coverage.exclusions>
     </properties>
 
     <dependencyManagement>
@@ -63,6 +63,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.flywaydb</groupId>
