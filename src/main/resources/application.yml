@@ -34,6 +34,11 @@ spring:
     validate-on-migrate: true
     out-of-order: false
 
+  # MVC Configuration
+  mvc:
+    problemdetails:
+      enabled: true
+
   # Jackson Configuration
   jackson:
     serialization:

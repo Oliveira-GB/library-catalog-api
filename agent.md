@@ -20,15 +20,16 @@ A User Story (US) or task can only be marked as completed `[x]` if it meets ALL 
 * **Architectural Adherence:** The generated code strictly follows the layer rules and restrictions defined in Blocks 2 and 3 of this document.
 
 ## 3. Current Focus (Active Task)
-* **Global Status:** [READY]
-* **Active Epic / US:** [Epic 1 - Central Catalog Management]
-* **Immediate Goal:** [Start US 1.1 - Category Registration]
+* **Global Status:** [READY FOR NEXT PHASE]
+* **Active Epic / US:** [Initial Infrastructure & Base Setup - COMPLETED]
+* **Immediate Goal:** [Ready to begin Epic 1: Central Catalog Management - US 1.1 Category Registration].
 
 ## 4. Decision Log & Troubleshooting
 * [2026-05-17] [DECISION]: Using .env file for environment variables instead of hardcoded values in docker-compose.yml (security best practice)
 * [2026-05-17] [DECISION]: SonarQube Cloud integration with 70% minimum code coverage threshold, JaCoCo for coverage reporting
 * [2026-05-17] [DECISION]: Domain entities implemented with JPA Auditing using Instant for timestamp fields (UTC timezone-safe)
 * [2026-05-17] [DECISION]: Entity names in English (Category, Author, Book, Reader) while maintaining Portuguese business terminology in database (DISPONIVEL, EMPRESTADO)
+* [2026-05-18] [DECISION]: RFC 7807 (Problem Details) global exception handler implemented with custom handlers for validation (400), not found (404), and data integrity (409) errors. Security sanitization prevents SQL/DB information leakage.
 * [YYYY-MM-DD] [BLOCKER RESOLVED]: [Empty]
 
 ## 5. Roadmap & Development Schedule (MVP Scope)
@@ -38,7 +39,7 @@ A User Story (US) or task can only be marked as completed `[x]` if it meets ALL 
 - [x] SonarQube Cloud integration with code coverage reporting (JaCoCo).
 - [x] Repository initialization, base packages, and Flyway setup with initial Migration.
 - [x] Domain entities (Category, Author, Book, Reader) with JPA mapping and auditing.
-- [ ] Implementation of standard `RestControllerAdvice` (RFC 7807) and static security configuration (Basic Auth with BCrypt for Admin routes).
+- [x] Implementation of standard `RestControllerAdvice` (RFC 7807) and static security configuration (Basic Auth with BCrypt for Admin routes).
 
 ### Epic 1: Central Catalog Management
 - [ ] US 1.1: Category Registration (POST with uniqueness rules and ativo=true).
