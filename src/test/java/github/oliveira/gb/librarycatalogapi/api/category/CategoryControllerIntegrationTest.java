@@ -20,6 +20,7 @@ import github.oliveira.gb.librarycatalogapi.domain.category.CategoryRepository;
 import org.junit.jupiter.api.AfterEach;
 
 import static org.hamcrest.Matchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -276,6 +277,73 @@ class CategoryControllerIntegrationTest {
                     .andExpect(jsonPath("$.title").exists())
                     .andExpect(jsonPath("$.status").exists())
                     .andExpect(jsonPath("$.detail").exists());
+        }
+    }
+
+    @Nested
+    @DisplayName("DELETE /api/v1/categorias/{id} - Deactivate Category")
+    class DeactivateCategoryTests {
+
+        @Test
+        @DisplayName("Should deactivate category and return HTTP 204")
+        void shouldDeactivateCategoryAndReturnHttp204() throws Exception {
+            // Arrange - Create a category first
+            String categoryName = "CategoryToDelete";
+            createCategory(categoryName);
+
+            // Get the created category ID
+            Long categoryId = categoryRepository.findAll().stream()
+                    .filter(c -> c.getName().equals(categoryName))
+                    .findFirst()
+                    .map(c -> c.getId())
+                    .orElseThrow();
+
+            // Act
+            ResultActions result = mockMvc.perform(delete(BASE_API_PATH + "/" + categoryId));
+
+            // Assert
+            result.andExpect(status().isNoContent());
+        }
+
+        @Test
+        @DisplayName("Should return HTTP 404 for non-existent category")
+        void shouldReturnHttp404ForNonExistentCategory() throws Exception {
+            // Act
+            ResultActions result = mockMvc.perform(delete(BASE_API_PATH + "/99999"));
+
+            // Assert
+            result.andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.type").value("https://api.library-catalog.com/errors/resource-not-found"))
+                    .andExpect(jsonPath("$.title").value("Resource Not Found"))
+                    .andExpect(jsonPath("$.status").value(404));
+        }
+
+        @Test
+        @DisplayName("Should omit deactivated category from list after deletion")
+        void shouldOmitDeactivatedCategoryFromListAfterDeletion() throws Exception {
+            // Arrange - Create a category
+            String categoryName = "CategoryToBeHidden";
+            createCategory(categoryName);
+
+            Long categoryId = categoryRepository.findAll().stream()
+                    .filter(c -> c.getName().equals(categoryName))
+                    .findFirst()
+                    .map(c -> c.getId())
+                    .orElseThrow();
+
+            // Verify category is in the list before deletion
+            mockMvc.perform(get(BASE_API_PATH))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content[*].name", hasItem(categoryName)));
+
+            // Act - Delete the category
+            mockMvc.perform(delete(BASE_API_PATH + "/" + categoryId))
+                    .andExpect(status().isNoContent());
+
+            // Assert - Verify category is NOT in the list after deletion
+            mockMvc.perform(get(BASE_API_PATH))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content[*].name", not(hasItem(categoryName))));
         }
     }
 

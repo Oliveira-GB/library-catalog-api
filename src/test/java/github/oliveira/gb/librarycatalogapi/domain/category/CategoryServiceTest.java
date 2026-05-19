@@ -16,6 +16,10 @@ import org.springframework.data.domain.Pageable;
 import java.time.Instant;
 import java.util.List;
 
+import github.oliveira.gb.librarycatalogapi.infrastructure.exception.ResourceNotFoundException;
+
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -170,6 +174,46 @@ class CategoryServiceTest {
             // Assert
             assertThat(result.getNumber()).isEqualTo(2);
             assertThat(result.getSize()).isEqualTo(5);
+        }
+    }
+
+    @Nested
+    @DisplayName("Deactivate Category Tests")
+    class DeactivateCategoryTests {
+
+        @Test
+        @DisplayName("Should deactivate category successfully")
+        void shouldDeactivateCategorySuccessfully() {
+            // Arrange
+            Long categoryId = 1L;
+            Category category = new Category();
+            category.setId(categoryId);
+            category.setName("Fiction");
+            category.setActive(true);
+
+            when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(category));
+
+            // Act
+            categoryService.deactivate(categoryId);
+
+            // Assert
+            assertThat(category.getActive()).isFalse();
+            verify(categoryRepository).findById(categoryId);
+        }
+
+        @Test
+        @DisplayName("Should throw ResourceNotFoundException when category not found")
+        void shouldThrowResourceNotFoundExceptionWhenCategoryNotFound() {
+            // Arrange
+            Long nonExistentId = 999L;
+            when(categoryRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+
+            // Act & Assert
+            assertThatThrownBy(() -> categoryService.deactivate(nonExistentId))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessageContaining("Category not found with id: " + nonExistentId);
+
+            verify(categoryRepository).findById(nonExistentId);
         }
     }
 }

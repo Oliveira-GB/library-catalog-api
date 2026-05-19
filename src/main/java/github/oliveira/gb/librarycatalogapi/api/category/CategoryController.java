@@ -65,6 +65,20 @@ public class CategoryController {
     }
 
     /**
+     * Deactivates a category by its ID.
+     * Implements soft delete - the category is marked as inactive but remains in the database.
+     * Inactive categories are excluded from standard queries via @SQLRestriction.
+     *
+     * @param id the category identifier
+     * @return ResponseEntity with no content (HTTP 204)
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deactivate(@PathVariable Long id) {
+        categoryService.deactivate(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
      * Converts a Category entity to CategoryResponse DTO.
      *
      * @param category the category entity

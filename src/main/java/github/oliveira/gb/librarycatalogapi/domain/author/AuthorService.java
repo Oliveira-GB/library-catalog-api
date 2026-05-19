@@ -1,5 +1,6 @@
 package github.oliveira.gb.librarycatalogapi.domain.author;
 
+import github.oliveira.gb.librarycatalogapi.infrastructure.exception.ResourceNotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -64,5 +65,24 @@ public class AuthorService {
     @Transactional(readOnly = true)
     public Page<Author> list(Pageable pageable) {
         return authorRepository.findAll(pageable);
+    }
+
+    /**
+     * Deactivates an author by setting its active status to false.
+     * This implements the soft delete pattern - the record remains in the database
+     * but is excluded from standard queries via @SQLRestriction.
+     *
+     * <p>Due to @SQLRestriction, attempting to deactivate an already inactive
+     * author will result in ResourceNotFoundException (HTTP 404), providing
+     * natural idempotency for the operation.</p>
+     *
+     * @param id the author identifier
+     * @throws ResourceNotFoundException if the author is not found or already inactive
+     */
+    @Transactional
+    public void deactivate(Long id) {
+        Author author = authorRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Author not found with id: " + id));
+        author.setActive(false);
     }
 }

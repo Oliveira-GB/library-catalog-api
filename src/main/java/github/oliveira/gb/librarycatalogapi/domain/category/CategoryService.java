@@ -1,5 +1,6 @@
 package github.oliveira.gb.librarycatalogapi.domain.category;
 
+import github.oliveira.gb.librarycatalogapi.infrastructure.exception.ResourceNotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -59,5 +60,24 @@ public class CategoryService {
     @Transactional(readOnly = true)
     public Page<Category> list(Pageable pageable) {
         return categoryRepository.findAll(pageable);
+    }
+
+    /**
+     * Deactivates a category by setting its active status to false.
+     * This implements the soft delete pattern - the record remains in the database
+     * but is excluded from standard queries via @SQLRestriction.
+     *
+     * <p>Due to @SQLRestriction, attempting to deactivate an already inactive
+     * category will result in ResourceNotFoundException (HTTP 404), providing
+     * natural idempotency for the operation.</p>
+     *
+     * @param id the category identifier
+     * @throws ResourceNotFoundException if the category is not found or already inactive
+     */
+    @Transactional
+    public void deactivate(Long id) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
+        category.setActive(false);
     }
 }

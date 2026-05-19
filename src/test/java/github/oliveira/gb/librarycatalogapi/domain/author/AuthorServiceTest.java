@@ -16,6 +16,10 @@ import org.springframework.data.domain.Pageable;
 import java.time.Instant;
 import java.util.List;
 
+import github.oliveira.gb.librarycatalogapi.infrastructure.exception.ResourceNotFoundException;
+
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -206,6 +210,47 @@ class AuthorServiceTest {
             // Assert
             assertThat(result.getNumber()).isEqualTo(3);
             assertThat(result.getSize()).isEqualTo(15);
+        }
+    }
+
+    @Nested
+    @DisplayName("Deactivate Author Tests")
+    class DeactivateAuthorTests {
+
+        @Test
+        @DisplayName("Should deactivate author successfully")
+        void shouldDeactivateAuthorSuccessfully() {
+            // Arrange
+            Long authorId = 1L;
+            Author author = new Author();
+            author.setId(authorId);
+            author.setName("John Doe");
+            author.setEmail("john@example.com");
+            author.setActive(true);
+
+            when(authorRepository.findById(authorId)).thenReturn(Optional.of(author));
+
+            // Act
+            authorService.deactivate(authorId);
+
+            // Assert
+            assertThat(author.getActive()).isFalse();
+            verify(authorRepository).findById(authorId);
+        }
+
+        @Test
+        @DisplayName("Should throw ResourceNotFoundException when author not found")
+        void shouldThrowResourceNotFoundExceptionWhenAuthorNotFound() {
+            // Arrange
+            Long nonExistentId = 999L;
+            when(authorRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+
+            // Act & Assert
+            assertThatThrownBy(() -> authorService.deactivate(nonExistentId))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessageContaining("Author not found with id: " + nonExistentId);
+
+            verify(authorRepository).findById(nonExistentId);
         }
     }
 }
