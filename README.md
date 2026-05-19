@@ -162,7 +162,7 @@ To run SonarQube analysis locally:
 
 ## Development Guidelines
 
-See [agent.md](agent.md) for detailed architecture decisions, coding standards, and Definition of Done.
+See [agent.md](AGENTS.md) for detailed architecture decisions, coding standards, and Definition of Done.
 
 ### Key Principles
 
