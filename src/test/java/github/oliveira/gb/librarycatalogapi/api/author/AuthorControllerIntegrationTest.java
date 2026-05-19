@@ -1,5 +1,6 @@
 package github.oliveira.gb.librarycatalogapi.api.author;
 
+import github.oliveira.gb.librarycatalogapi.domain.author.Author;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -20,6 +21,7 @@ import github.oliveira.gb.librarycatalogapi.domain.author.AuthorRepository;
 import org.junit.jupiter.api.AfterEach;
 
 import static org.hamcrest.Matchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -364,6 +366,75 @@ class AuthorControllerIntegrationTest {
                     .andExpect(jsonPath("$.content[*].active").exists())
                     .andExpect(jsonPath("$.content[*].createdAt").exists())
                     .andExpect(jsonPath("$.content[*].updatedAt").exists());
+        }
+    }
+
+    @Nested
+    @DisplayName("DELETE /api/v1/autores/{id} - Deactivate Author")
+    class DeactivateAuthorTests {
+
+        @Test
+        @DisplayName("Should deactivate author and return HTTP 204")
+        void shouldDeactivateAuthorAndReturnHttp204() throws Exception {
+            // Arrange - Create an author first
+            String authorName = "AuthorToDelete";
+            String authorEmail = "author.delete@example.com";
+            createAuthor(authorName, authorEmail);
+
+            // Get the created author ID
+            Long authorId = authorRepository.findAll().stream()
+                    .filter(a -> a.getEmail().equals(authorEmail))
+                    .findFirst()
+                    .map(Author::getId)
+                    .orElseThrow();
+
+            // Act
+            ResultActions result = mockMvc.perform(delete(BASE_API_PATH + "/" + authorId));
+
+            // Assert
+            result.andExpect(status().isNoContent());
+        }
+
+        @Test
+        @DisplayName("Should return HTTP 404 for non-existent author")
+        void shouldReturnHttp404ForNonExistentAuthor() throws Exception {
+            // Act
+            ResultActions result = mockMvc.perform(delete(BASE_API_PATH + "/99999"));
+
+            // Assert
+            result.andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.type").value("https://api.library-catalog.com/errors/resource-not-found"))
+                    .andExpect(jsonPath("$.title").value("Resource Not Found"))
+                    .andExpect(jsonPath("$.status").value(404));
+        }
+
+        @Test
+        @DisplayName("Should omit deactivated author from list after deletion")
+        void shouldOmitDeactivatedAuthorFromListAfterDeletion() throws Exception {
+            // Arrange - Create an author
+            String authorName = "AuthorToBeHidden";
+            String authorEmail = "hidden.author@example.com";
+            createAuthor(authorName, authorEmail);
+
+            Long authorId = authorRepository.findAll().stream()
+                    .filter(a -> a.getEmail().equals(authorEmail))
+                    .findFirst()
+                    .map(Author::getId)
+                    .orElseThrow();
+
+            // Verify author is in the list before deletion
+            mockMvc.perform(get(BASE_API_PATH))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content[*].name", hasItem(authorName)));
+
+            // Act - Delete the author
+            mockMvc.perform(delete(BASE_API_PATH + "/" + authorId))
+                    .andExpect(status().isNoContent());
+
+            // Assert - Verify author is NOT in the list after deletion
+            mockMvc.perform(get(BASE_API_PATH))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content[*].name", not(hasItem(authorName))));
         }
     }
 

@@ -30,6 +30,7 @@ A User Story (US) or task can only be marked as completed `[x]` if it meets ALL 
 * [2026-05-17] [DECISION]: Domain entities implemented with JPA Auditing using Instant for timestamp fields (UTC timezone-safe)
 * [2026-05-17] [DECISION]: Entity names in English (Category, Author, Book, Reader) while maintaining Portuguese business terminology in database (DISPONIVEL, EMPRESTADO)
 * [2026-05-18] [DECISION]: RFC 7807 (Problem Details) global exception handler implemented with custom handlers for validation (400), not found (404), and data integrity (409) errors. Security sanitization prevents SQL/DB information leakage.
+* [2026-05-19] [DECISION]: Soft Delete pattern implemented for Category and Author entities using Hibernate @SQLRestriction("active = true"). DELETE endpoints return HTTP 204 and inactivated records are automatically filtered from standard queries. No physical deletion is performed.
 * [YYYY-MM-DD] [BLOCKER RESOLVED]: [Empty]
 
 ## 5. Roadmap & Development Schedule (MVP Scope)
@@ -42,12 +43,12 @@ A User Story (US) or task can only be marked as completed `[x]` if it meets ALL 
 - [x] Implementation of standard `RestControllerAdvice` (RFC 7807) and static security configuration (Basic Auth with BCrypt for Admin routes).
 
 ### Epic 1: Central Catalog Management
-- [ ] US 1.1: Category Registration (POST with uniqueness rules and ativo=true).
-- [ ] US 1.2: Category Query (Paginated GET, filtering inactive and dynamic search).
-- [ ] US 1.3: Category Maintenance (PUT edit and DELETE via Soft Delete).
-- [ ] US 1.4: Author Registration (POST with uniqueness rules).
-- [ ] US 1.5: Author Query (Paginated GET, omitting biography in list).
-- [ ] US 1.6: Author Maintenance (PUT edit and DELETE via Soft Delete, preserving history).
+- [x] US 1.1: Category Registration (POST with uniqueness rules and ativo=true).
+- [x] US 1.2: Category Query (Paginated GET, filtering inactive and dynamic search).
+- [x] US 1.3: Category Maintenance (PUT edit and DELETE via Soft Delete).
+- [x] US 1.4: Author Registration (POST with uniqueness rules).
+- [x] US 1.5: Author Query (Paginated GET, omitting biography in list).
+- [x] US 1.6: Author Maintenance (PUT edit and DELETE via Soft Delete, preserving history).
 - [ ] US 1.7: Book Registration (Physical copy, strict validation of active dependencies and `@ISBN`).
 - [ ] US 1.8: Book Details (Search by ID or ISBN, mandatory optimization with `JOIN FETCH`).
 - [ ] US 1.9: Book Data and Relationship Edit (PUT with `@ManyToMany` sync via `@Transactional`).

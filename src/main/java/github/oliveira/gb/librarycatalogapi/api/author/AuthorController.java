@@ -69,6 +69,20 @@ public class AuthorController {
     }
 
     /**
+     * Deactivates an author by its ID.
+     * Implements soft delete - the author is marked as inactive but remains in the database.
+     * Inactive authors are excluded from standard queries via @SQLRestriction.
+     *
+     * @param id the author identifier
+     * @return ResponseEntity with no content (HTTP 204)
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deactivate(@PathVariable Long id) {
+        authorService.deactivate(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
      * Converts an Author entity to AuthorResponse DTO.
      *
      * @param author the author entity

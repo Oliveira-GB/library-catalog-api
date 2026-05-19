@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SQLRestriction;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -13,9 +14,11 @@ import java.time.Instant;
 
 /**
  * Entity representing an author in the library catalog.
+ * Implements soft delete pattern with SQL restriction to filter inactive records.
  */
 @Entity
 @Table(name = "authors")
+@SQLRestriction("active = true")
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
