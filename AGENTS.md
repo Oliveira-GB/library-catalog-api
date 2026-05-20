@@ -31,6 +31,8 @@ A User Story (US) or task can only be marked as completed `[x]` if it meets ALL 
 * [2026-05-17] [DECISION]: Entity names in English (Category, Author, Book, Reader) while maintaining Portuguese business terminology in database (DISPONIVEL, EMPRESTADO)
 * [2026-05-18] [DECISION]: RFC 7807 (Problem Details) global exception handler implemented with custom handlers for validation (400), not found (404), and data integrity (409) errors. Security sanitization prevents SQL/DB information leakage.
 * [2026-05-19] [DECISION]: Soft Delete pattern implemented for Category and Author entities using Hibernate @SQLRestriction("active = true"). DELETE endpoints return HTTP 204 and inactivated records are automatically filtered from standard queries. No physical deletion is performed.
+* [2026-05-20] [DECISION]: Replaced single-stage Dockerfile with multi-stage build for cloud deployment optimization on Render. Stage 1 uses maven:3.9-eclipse-temurin-21-alpine to compile the application, and Stage 2 uses eclipse-temurin:21-jre-alpine to run the generated jar.
+* [2026-05-20] [DECISION]: Consolidated GitHub Actions workflows (sonar.yml) into a unified ci-cd.yml. The pipeline runs Build, Tests, and SonarQube analysis on push and pull_request to main. Render deployment via webhook is strictly conditional to push events on main only.
 * [YYYY-MM-DD] [BLOCKER RESOLVED]: [Empty]
 
 ## 5. Roadmap & Development Schedule (MVP Scope)
