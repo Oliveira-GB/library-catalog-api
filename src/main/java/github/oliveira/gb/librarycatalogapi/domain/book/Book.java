@@ -7,6 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SQLRestriction;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -20,6 +21,7 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "books")
+@SQLRestriction("active = true")
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
