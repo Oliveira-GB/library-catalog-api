@@ -1,5 +1,11 @@
 package github.oliveira.gb.librarycatalogapi.infrastructure.exception;
 
+import github.oliveira.gb.librarycatalogapi.domain.loan.exception.BatchLimitExceededException;
+import github.oliveira.gb.librarycatalogapi.domain.loan.exception.BookUnavailableException;
+import github.oliveira.gb.librarycatalogapi.domain.loan.exception.DuplicateTitleException;
+import github.oliveira.gb.librarycatalogapi.domain.loan.exception.OverdueBooksException;
+import github.oliveira.gb.librarycatalogapi.domain.loan.exception.PendingFinesException;
+import github.oliveira.gb.librarycatalogapi.domain.loan.exception.TitleAlreadyLoanedException;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -111,6 +117,37 @@ public class GlobalExceptionHandler {
 
         problemDetail.setType(URI.create(BASE_ERROR_URI + "data-conflict"));
         problemDetail.setTitle("Data Conflict");
+        problemDetail.setInstance(URI.create(extractRequestPath(request)));
+
+        return problemDetail;
+    }
+
+    /**
+     * Handles loan-specific business rule violations.
+     * Returns HTTP 422 (Unprocessable Entity) for semantically valid requests
+     * that violate transactional business constraints (batch limits, delinquency,
+     * anti-hoarding, or availability).
+     *
+     * @param ex the loan validation exception
+     * @param request the current web request
+     * @return ProblemDetail with RFC 7807 structure
+     */
+    @ExceptionHandler({
+            BatchLimitExceededException.class,
+            OverdueBooksException.class,
+            PendingFinesException.class,
+            DuplicateTitleException.class,
+            TitleAlreadyLoanedException.class,
+            BookUnavailableException.class
+    })
+    public ProblemDetail handleLoanValidationException(RuntimeException ex, WebRequest request) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.UNPROCESSABLE_ENTITY,
+                ex.getMessage()
+        );
+
+        problemDetail.setType(URI.create(BASE_ERROR_URI + "loan-validation-failed"));
+        problemDetail.setTitle("Loan Validation Failed");
         problemDetail.setInstance(URI.create(extractRequestPath(request)));
 
         return problemDetail;

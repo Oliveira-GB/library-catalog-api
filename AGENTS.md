@@ -20,9 +20,9 @@ A User Story (US) or task can only be marked as completed `[x]` if it meets ALL 
 * **Architectural Adherence:** The generated code strictly follows the layer rules and restrictions defined in Blocks 2 and 3 of this document.
 
 ## 3. Current Focus (Active Task)
-* **Global Status:** [READY FOR NEXT PHASE]
-* **Active Epic / US:** [Initial Infrastructure & Base Setup - COMPLETED]
-* **Immediate Goal:** [Ready to begin Epic 1: Central Catalog Management - US 1.1 Category Registration].
+* **Global Status:** [US 3.1 IMPLEMENTATION COMPLETED — AWAITING USER REVIEW]
+* **Active Epic / US:** [Epic 3: Transactional Loan and Return Engine - US 3.1 Batch Loan Registration]
+* **Immediate Goal:** [All acceptance criteria implemented: Strategy validation engine, pessimistic locking, fail-fast orchestrator, RFC 7807 error mapping, unit and integration tests passing. Awaiting next US or review].
 
 ## 4. Decision Log & Troubleshooting
 * [2026-05-17] [DECISION]: Using .env file for environment variables instead of hardcoded values in docker-compose.yml (security best practice)
@@ -33,6 +33,15 @@ A User Story (US) or task can only be marked as completed `[x]` if it meets ALL 
 * [2026-05-19] [DECISION]: Soft Delete pattern implemented for Category and Author entities using Hibernate @SQLRestriction("active = true"). DELETE endpoints return HTTP 204 and inactivated records are automatically filtered from standard queries. No physical deletion is performed.
 * [2026-05-20] [DECISION]: Replaced single-stage Dockerfile with multi-stage build for cloud deployment optimization on Render. Stage 1 uses maven:3.9-eclipse-temurin-21-alpine to compile the application, and Stage 2 uses eclipse-temurin:21-jre-alpine to run the generated jar.
 * [2026-05-20] [DECISION]: Consolidated GitHub Actions workflows (sonar.yml) into a unified ci-cd.yml. The pipeline runs Build, Tests, and SonarQube analysis on push and pull_request to main. Render deployment via webhook is strictly conditional to push events on main only.
+* [2026-05-20] [DECISION]: US 3.1 structural block prioritized. Creation of `Loan`, `LoanItem`, `Fine` entities and Flyway V3 is prerequisite before validator/service implementation.
+* [2026-05-20] [DECISION]: Concurrency control for loan engine uses Pessimistic Write Lock (`@Lock(LockModeType.PESSIMISTIC_WRITE)`) on Reader record. Optimistic locking discarded because Reader entity lacks `@Version` and batch serialization requirements favor pessimistic strategy.
+* [2026-05-20] [DECISION]: `Book` and `Reader` entities receive `@SQLRestriction("active = true")` to align with existing Category/Author soft delete pattern and ensure loan queries automatically exclude inactive records.
+* [2026-05-20] [DECISION]: Validation engine adopts Strategy pattern with `LoanValidationOrchestrator` over Chain of Responsibility. Isolated validator components per business rule, injected as `List<LoanValidator>`, executed sequentially in deterministic order.
+* [2026-05-20] [DECISION]: Orchestrator operates in strict fail-fast mode BEFORE any entity mutation (e.g., before changing Book status). Guarantees trivial rollback and clean entity state.
+* [2026-05-20] [DECISION]: `Book` represents the cataloged work (title + ISBN). Loan is made at title level; no `BookCopy`/`Exemplar` entity introduced at this stage.
+* [2026-05-20] [DECISION]: `LoanItem` is implemented as a separate `@Entity` with its own ID (not simple `@ManyToMany` join table) to support per-item tracking (`returnedAt`, `fineAmount`) required for future US 3.3 (Return and Fine Settlement).
+* [2026-05-20] [DECISION]: `Loan` entity uses lifecycle `status` enum (`ATIVO`, `FINALIZADO`) instead of `@SQLRestriction("active = true")`, preserving full historical queryability for US 3.5 (Transaction History). Physical deletion remains forbidden.
+* [2026-05-20] [DECISION]: `Fine` entity tracks `reader_id`, `amount`, `paid` (boolean). No `@SQLRestriction` applied to Fine to preserve debt history visibility.
 * [YYYY-MM-DD] [BLOCKER RESOLVED]: [Empty]
 
 ## 5. Roadmap & Development Schedule (MVP Scope)
@@ -43,6 +52,8 @@ A User Story (US) or task can only be marked as completed `[x]` if it meets ALL 
 - [x] Repository initialization, base packages, and Flyway setup with initial Migration.
 - [x] Domain entities (Category, Author, Book, Reader) with JPA mapping and auditing.
 - [x] Implementation of standard `RestControllerAdvice` (RFC 7807) and static security configuration (Basic Auth with BCrypt for Admin routes).
+- [x] Unified CI/CD Pipeline (GitHub Actions) with Build, Test, SonarQube Quality Gate, and conditional Render deployment.
+- [x] Multi-stage Dockerfile for optimized cloud deployment with non-root runtime user.
 
 ### Epic 1: Central Catalog Management
 - [x] US 1.1: Category Registration (POST with uniqueness rules and ativo=true).
