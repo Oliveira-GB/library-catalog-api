@@ -1,10 +1,14 @@
 package github.oliveira.gb.librarycatalogapi.infrastructure.exception;
 
+import github.oliveira.gb.librarycatalogapi.domain.book.exception.BookLoanedException;
 import github.oliveira.gb.librarycatalogapi.domain.loan.exception.BatchLimitExceededException;
 import github.oliveira.gb.librarycatalogapi.domain.loan.exception.BookUnavailableException;
 import github.oliveira.gb.librarycatalogapi.domain.loan.exception.DuplicateTitleException;
+import github.oliveira.gb.librarycatalogapi.domain.loan.exception.LoanAlreadyReturnedException;
+import github.oliveira.gb.librarycatalogapi.domain.loan.exception.MaxRenewalsReachedException;
 import github.oliveira.gb.librarycatalogapi.domain.loan.exception.OverdueBooksException;
 import github.oliveira.gb.librarycatalogapi.domain.loan.exception.PendingFinesException;
+import github.oliveira.gb.librarycatalogapi.domain.loan.exception.PossessionLimitExceededException;
 import github.oliveira.gb.librarycatalogapi.domain.loan.exception.TitleAlreadyLoanedException;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -12,6 +16,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -138,7 +143,11 @@ public class GlobalExceptionHandler {
             PendingFinesException.class,
             DuplicateTitleException.class,
             TitleAlreadyLoanedException.class,
-            BookUnavailableException.class
+            BookUnavailableException.class,
+            PossessionLimitExceededException.class,
+            MaxRenewalsReachedException.class,
+            LoanAlreadyReturnedException.class,
+            BookLoanedException.class
     })
     public ProblemDetail handleLoanValidationException(RuntimeException ex, WebRequest request) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
@@ -150,6 +159,26 @@ public class GlobalExceptionHandler {
         problemDetail.setTitle("Loan Validation Failed");
         problemDetail.setInstance(URI.create(extractRequestPath(request)));
 
+        return problemDetail;
+    }
+
+    /**
+     * Handles unsupported Accept headers during content negotiation.
+     * Returns HTTP 406 with standardized problem detail.
+     *
+     * @param ex the media type not acceptable exception
+     * @param request the current web request
+     * @return ProblemDetail with RFC 7807 structure
+     */
+    @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
+    public ProblemDetail handleMediaTypeNotAcceptable(HttpMediaTypeNotAcceptableException ex, WebRequest request) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_ACCEPTABLE,
+                "The requested media type is not supported. Acceptable types: application/json, text/csv, application/pdf."
+        );
+        problemDetail.setType(URI.create(BASE_ERROR_URI + "media-type-not-acceptable"));
+        problemDetail.setTitle("Media Type Not Acceptable");
+        problemDetail.setInstance(URI.create(extractRequestPath(request)));
         return problemDetail;
     }
 

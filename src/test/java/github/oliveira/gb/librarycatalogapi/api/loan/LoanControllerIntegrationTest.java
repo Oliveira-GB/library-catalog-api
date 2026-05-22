@@ -290,6 +290,68 @@ class LoanControllerIntegrationTest {
             List<Integer> statuses = List.of(status1, status2);
             assertThat(statuses).containsExactlyInAnyOrder(201, 422);
         }
+
+        @Test
+        @DisplayName("Should enforce cumulative possession limit under concurrent requests")
+        void shouldEnforceCumulativeLimitUnderConcurrentRequests() throws Exception {
+            Reader reader = createTestReader("cumulative-concurrent@example.com", "123.456.789-98");
+            List<Book> books = new ArrayList<>();
+            for (int i = 0; i < 6; i++) {
+                books.add(createTestBook("978-0-00-00009" + i + "-0", "Concurrent Book " + i));
+            }
+
+            // Thread 1 requests books 0,1,2
+            String requestBody1 = String.format("""
+                    {
+                        "readerId": %d,
+                        "bookIds": [%d, %d, %d]
+                    }
+                    """, reader.getId(), books.get(0).getId(), books.get(1).getId(), books.get(2).getId());
+
+            // Thread 2 requests books 3,4,5
+            String requestBody2 = String.format("""
+                    {
+                        "readerId": %d,
+                        "bookIds": [%d, %d, %d]
+                    }
+                    """, reader.getId(), books.get(3).getId(), books.get(4).getId(), books.get(5).getId());
+
+            ExecutorService executor = Executors.newFixedThreadPool(2);
+            CountDownLatch latch = new CountDownLatch(1);
+            List<Future<Integer>> futures = new ArrayList<>();
+
+            futures.add(executor.submit(() -> {
+                latch.await();
+                var response = mockMvc.perform(post(BASE_API_PATH)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(requestBody1))
+                        .andReturn()
+                        .getResponse();
+                return response.getStatus();
+            }));
+
+            futures.add(executor.submit(() -> {
+                latch.await();
+                var response = mockMvc.perform(post(BASE_API_PATH)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(requestBody2))
+                        .andReturn()
+                        .getResponse();
+                return response.getStatus();
+            }));
+
+            latch.countDown();
+
+            int status1 = futures.get(0).get();
+            int status2 = futures.get(1).get();
+            executor.shutdown();
+
+            List<Integer> statuses = List.of(status1, status2);
+            assertThat(statuses).containsExactlyInAnyOrder(201, 422);
+            assertThat(loanRepository.count()).isEqualTo(1);
+        }
+
+
     }
 
     private Reader createTestReader(String email, String cpf) {

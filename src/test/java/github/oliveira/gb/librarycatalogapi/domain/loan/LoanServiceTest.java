@@ -4,6 +4,8 @@ import github.oliveira.gb.librarycatalogapi.domain.book.Book;
 import github.oliveira.gb.librarycatalogapi.domain.book.BookRepository;
 import github.oliveira.gb.librarycatalogapi.domain.book.BookStatus;
 import github.oliveira.gb.librarycatalogapi.domain.loan.exception.BookUnavailableException;
+import github.oliveira.gb.librarycatalogapi.domain.loan.exception.LoanAlreadyReturnedException;
+import github.oliveira.gb.librarycatalogapi.domain.loan.exception.MaxRenewalsReachedException;
 import github.oliveira.gb.librarycatalogapi.domain.loan.validation.LoanValidationContext;
 import github.oliveira.gb.librarycatalogapi.domain.loan.validation.LoanValidationOrchestrator;
 import github.oliveira.gb.librarycatalogapi.domain.reader.Reader;
@@ -157,5 +159,75 @@ class LoanServiceTest {
         loanService.createLoan(1L, List.of(20L, 10L)); // unsorted input
 
         verify(bookRepository).findAllByIdWithLock(List.of(10L, 20L));
+    }
+
+    // --- Renewal Tests ---
+
+    @Test
+    @DisplayName("Should renew loan successfully when under max renewals")
+    void shouldRenewLoanSuccessfully() {
+        java.time.Instant originalDueDate = java.time.Instant.now().minusSeconds(3600);
+        Loan loan = new Loan();
+        loan.setId(1L);
+        loan.setStatus(LoanStatus.ATIVO);
+        loan.setRenewalCount(2);
+        loan.setDueDate(originalDueDate);
+
+        when(loanRepository.findWithLockById(1L)).thenReturn(Optional.of(loan));
+
+        Loan result = loanService.renewLoan(1L);
+
+        assertThat(result.getRenewalCount()).isEqualTo(3);
+        assertThat(result.getDueDate()).isAfter(originalDueDate);
+        assertThat(result.getDueDate()).isCloseTo(
+                java.time.Instant.now().plus(14, java.time.temporal.ChronoUnit.DAYS),
+                org.assertj.core.api.Assertions.within(1, java.time.temporal.ChronoUnit.MINUTES)
+        );
+        assertThat(result.getStatus()).isEqualTo(LoanStatus.ATIVO);
+        verify(loanRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should throw MaxRenewalsReachedException when renewal count equals max")
+    void shouldThrowWhenMaxRenewalsReached() {
+        Loan loan = new Loan();
+        loan.setId(1L);
+        loan.setStatus(LoanStatus.ATIVO);
+        loan.setRenewalCount(3);
+
+        when(loanRepository.findWithLockById(1L)).thenReturn(Optional.of(loan));
+
+        assertThatThrownBy(() -> loanService.renewLoan(1L))
+                .isInstanceOf(MaxRenewalsReachedException.class)
+                .hasMessageContaining("Maximum number of renewals (3)");
+
+        verify(loanRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should throw LoanAlreadyReturnedException when loan status is FINALIZADO")
+    void shouldThrowWhenLoanAlreadyReturned() {
+        Loan loan = new Loan();
+        loan.setId(1L);
+        loan.setStatus(LoanStatus.FINALIZADO);
+        loan.setRenewalCount(1);
+
+        when(loanRepository.findWithLockById(1L)).thenReturn(Optional.of(loan));
+
+        assertThatThrownBy(() -> loanService.renewLoan(1L))
+                .isInstanceOf(LoanAlreadyReturnedException.class)
+                .hasMessageContaining("already been returned");
+
+        verify(loanRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should throw ResourceNotFoundException when loan does not exist")
+    void shouldThrowWhenLoanNotFoundForRenewal() {
+        when(loanRepository.findWithLockById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> loanService.renewLoan(99L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Loan not found");
     }
 }

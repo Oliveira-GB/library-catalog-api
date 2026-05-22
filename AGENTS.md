@@ -20,9 +20,9 @@ A User Story (US) or task can only be marked as completed `[x]` if it meets ALL 
 * **Architectural Adherence:** The generated code strictly follows the layer rules and restrictions defined in Blocks 2 and 3 of this document.
 
 ## 3. Current Focus (Active Task)
-* **Global Status:** [US 3.1 IMPLEMENTATION COMPLETED — AWAITING USER REVIEW]
-* **Active Epic / US:** [Epic 3: Transactional Loan and Return Engine - US 3.1 Batch Loan Registration]
-* **Immediate Goal:** [All acceptance criteria implemented: Strategy validation engine, pessimistic locking, fail-fast orchestrator, RFC 7807 error mapping, unit and integration tests passing. Awaiting next US or review].
+* **Global Status:** [US 1.7 THROUGH US 1.11 IMPLEMENTATION COMPLETED]
+* **Active Epic / US:** [Epic 1: Central Catalog Management - US 1.7 Book Registration through US 1.11 Book Query]
+* **Immediate Goal:** [All acceptance criteria implemented for US 1.7-1.11: Book CRUD with ISBN validation, JOIN FETCH optimization for detail queries, ManyToMany author sync on PUT, EMPRESTADO status lock on soft delete, lightweight paginated list with EntityGraph. Full test suite passing (172 tests, 0 failures, 5 skipped). Awaiting next US or review].
 
 ## 4. Decision Log & Troubleshooting
 * [2026-05-17] [DECISION]: Using .env file for environment variables instead of hardcoded values in docker-compose.yml (security best practice)
@@ -42,6 +42,14 @@ A User Story (US) or task can only be marked as completed `[x]` if it meets ALL 
 * [2026-05-20] [DECISION]: `LoanItem` is implemented as a separate `@Entity` with its own ID (not simple `@ManyToMany` join table) to support per-item tracking (`returnedAt`, `fineAmount`) required for future US 3.3 (Return and Fine Settlement).
 * [2026-05-20] [DECISION]: `Loan` entity uses lifecycle `status` enum (`ATIVO`, `FINALIZADO`) instead of `@SQLRestriction("active = true")`, preserving full historical queryability for US 3.5 (Transaction History). Physical deletion remains forbidden.
 * [2026-05-20] [DECISION]: `Fine` entity tracks `reader_id`, `amount`, `paid` (boolean). No `@SQLRestriction` applied to Fine to preserve debt history visibility.
+* [2026-05-21] [DECISION]: `PossessionLimitValidator` implemented as `@Order(7)` in the validation orchestrator. Cumulative possession rule: `activeItems + requestedBatchSize > 5` triggers `PossessionLimitExceededException` (HTTP 422).
+* [2026-05-21] [DECISION]: `Loan` entity extended with `renewal_count` (default 0) via Flyway V4. Renewal endpoint `PATCH /api/v1/emprestimos/{id}/renovacao` with `MAX_RENEWALS = 3`. Exceeding limit throws `MaxRenewalsReachedException` (HTTP 422). Finalized loans throw `LoanAlreadyReturnedException` (HTTP 422).
+* [2026-05-21] [DECISION]: Integration test cleanup for soft-deleted records must bypass Hibernate `@SQLRestriction`. `JdbcTemplate` with native `DELETE FROM` statements used in `LoanTransactionalRollbackIntegrationTest` to ensure inactive (soft-deleted) books/readers are fully removed between tests.
+* [2026-05-21] [DECISION]: Book API DTOs use `@ISBN` (Hibernate Validator) for ISBN-10/ISBN-13 checksum validation. `@Size(max=25)` applied to accommodate whitespace padding before service-layer trimming, while DB column remains `VARCHAR(20)`.
+* [2026-05-21] [DECISION]: `BookRepository.findAllWithCategory` uses `@EntityGraph(attributePaths = {"category"})` combined with explicit `@Query("SELECT b FROM Book b")` to prevent Spring Data JPA from attempting query derivation on the custom method name.
+* [2026-05-21] [DECISION]: `BookService.findAuthorsByIds` converts author ID list to `Set` before calling `authorRepository.findAllById` to eliminate duplicates, then validates that all requested IDs were found.
+* [2026-05-21] [DECISION]: Book inactivation (soft delete) uses dedicated `BookLoanedException` mapped to HTTP 422 in `GlobalExceptionHandler`, preserving consistency with other business rule violation responses.
+* [2026-05-22] [DECISION]: Epic 4 (US 4.1, 4.2, 4.4) implemented. Native SQL projections with `string_agg` used for catalog/ISBN to avoid `@ManyToMany` entity loading. Financial report bypasses `@SQLRestriction` via native query to preserve audit history of inactive readers. Apache Commons CSV + OpenPDF adopted for document generation. Content negotiation driven exclusively by `Accept` header. SecurityConfig introduced with Basic Auth: `/api/v1/catalogo/livros/**` is `permitAll()`, all other endpoints require authentication.
 * [YYYY-MM-DD] [BLOCKER RESOLVED]: [Empty]
 
 ## 5. Roadmap & Development Schedule (MVP Scope)
@@ -62,11 +70,11 @@ A User Story (US) or task can only be marked as completed `[x]` if it meets ALL 
 - [x] US 1.4: Author Registration (POST with uniqueness rules).
 - [x] US 1.5: Author Query (Paginated GET, omitting biography in list).
 - [x] US 1.6: Author Maintenance (PUT edit and DELETE via Soft Delete, preserving history).
-- [ ] US 1.7: Book Registration (Physical copy, strict validation of active dependencies and `@ISBN`).
-- [ ] US 1.8: Book Details (Search by ID or ISBN, mandatory optimization with `JOIN FETCH`).
-- [ ] US 1.9: Book Data and Relationship Edit (PUT with `@ManyToMany` sync via `@Transactional`).
-- [ ] US 1.10: Book Inactivation (Soft Delete tied to lock: impossible to inactivate a book with EMPRESTADO status).
-- [ ] US 1.11: Book Query (Paginated GET focused on lightweight navigation).
+- [x] US 1.7: Book Registration (Physical copy, strict validation of active dependencies and `@ISBN`).
+- [x] US 1.8: Book Details (Search by ID or ISBN, mandatory optimization with `JOIN FETCH`).
+- [x] US 1.9: Book Data and Relationship Edit (PUT with `@ManyToMany` sync via `@Transactional`).
+- [x] US 1.10: Book Inactivation (Soft Delete tied to lock: impossible to inactivate a book with EMPRESTADO status).
+- [x] US 1.11: Book Query (Paginated GET focused on lightweight navigation).
 
 ### Epic 2: Reader Management (Identity)
 - [ ] US 2.1: Reader Registration (POST with unique CPF, synchronous external CEP API integration for embedded address).
@@ -75,18 +83,18 @@ A User Story (US) or task can only be marked as completed `[x]` if it meets ALL 
 - [ ] US 2.4: Reader Maintenance and Inactivation (PUT isolating immutable CPF and updating CEP via external API, and DELETE via Soft Delete).
 
 ### Epic 3: Transactional Loan and Return Engine
-- [ ] US 3.1: Batch Loan Registration (POST with physical/financial delinquency locks and possession limit lock).
-- [ ] US 3.2: Batch Term Renewal (PATCH with strict renewal limits and time rules).
+- [x] US 3.1: Batch Loan Registration (POST with physical/financial delinquency locks and possession limit lock).
+- [x] US 3.2: Batch Term Renewal (PATCH with strict renewal limits and time rules).
 - [ ] US 3.3: Return and Fine Settlement (GET flow for late fee calculation and POST with unified status change for `StatusLote` and `StatusLivro`).
 - [ ] US 3.4: Flow and Delinquency Query (GET dashboard filtered by state, consolidating real and projected debts).
 - [ ] US 3.5: Transaction History and Auditing (Chronological GET by reader).
 - [ ] US 3.6: Pending Debt Settlement (Atomic POST migrating `valorMultaPendente` to fully paid, conditioned on return).
 
 ### Epic 4: Search Mechanism, Discovery, and Reports
-- [ ] US 4.1: Parameterized Discovery Catalog (Public indexed GET without access restriction).
-- [ ] US 4.2: Inventory Report (Export via Content Negotiation [CSV/PDF] locked to 100 results).
+- [x] US 4.1: Parameterized Discovery Catalog (Public indexed GET without access restriction).
+- [x] US 4.2: Inventory Report (Export via Content Negotiation [CSV/PDF] locked to 100 results).
 - [ ] US 4.3: Movement and Delinquency Report (Time interval filters based on US 3.6 and US 3.3 resolutions).
-- [ ] US 4.4: ISBN Query API (Public integration route exposing derived boolean for physical copy availability).
+- [x] US 4.4: ISBN Query API (Public integration route exposing derived boolean for physical copy availability).
 
 # Block 2: Developer Guidelines
 

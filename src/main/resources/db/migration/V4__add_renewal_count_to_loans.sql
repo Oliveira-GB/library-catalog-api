@@ -1,0 +1,1 @@
+ALTER TABLE loans ADD COLUMN renewal_count INT NOT NULL DEFAULT 0;

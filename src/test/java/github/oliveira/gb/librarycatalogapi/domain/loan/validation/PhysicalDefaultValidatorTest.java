@@ -59,4 +59,29 @@ class PhysicalDefaultValidatorTest {
                 .isInstanceOf(OverdueBooksException.class)
                 .hasMessageContaining("overdue books");
     }
+
+    @Test
+    @DisplayName("Should pass when due date is exactly equal to now (not yet overdue)")
+    void shouldPassWhenDueDateEqualsNow() {
+        Reader reader = new Reader();
+        reader.setId(3L);
+        Instant now = Instant.now();
+        when(loanRepository.existsActiveOverdueLoanByReaderId(eq(3L), any(), eq(now))).thenReturn(false);
+
+        LoanValidationContext context = new LoanValidationContext(reader, List.of(10L), null, now);
+        assertThatNoException().isThrownBy(() -> validator.validate(context));
+    }
+
+    @Test
+    @DisplayName("Should throw when due date is 1 millisecond in the past")
+    void shouldThrowWhenDueDateOneMillisecondPast() {
+        Reader reader = new Reader();
+        reader.setId(4L);
+        Instant now = Instant.now();
+        when(loanRepository.existsActiveOverdueLoanByReaderId(eq(4L), any(), eq(now))).thenReturn(true);
+
+        LoanValidationContext context = new LoanValidationContext(reader, List.of(10L), null, now);
+        assertThatThrownBy(() -> validator.validate(context))
+                .isInstanceOf(OverdueBooksException.class);
+    }
 }

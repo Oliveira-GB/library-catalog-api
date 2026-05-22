@@ -47,6 +47,9 @@ public class Loan {
     @Column(name = "returned_at")
     private Instant returnedAt;
 
+    @Column(name = "renewal_count", nullable = false)
+    private int renewalCount = 0;
+
     @OneToMany(mappedBy = "loan", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<LoanItem> items = new ArrayList<>();
 

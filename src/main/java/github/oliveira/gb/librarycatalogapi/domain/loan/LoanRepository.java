@@ -1,8 +1,12 @@
 package github.oliveira.gb.librarycatalogapi.domain.loan;
 
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
 
 import java.time.Instant;
 import java.util.List;
@@ -33,4 +37,25 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
      */
     @Query("SELECT COUNT(li) > 0 FROM LoanItem li WHERE li.loan.reader.id = :readerId AND li.loan.status = :status AND li.book.id IN :bookIds")
     boolean existsActiveLoanItemByReaderIdAndBookIds(Long readerId, LoanStatus status, List<Long> bookIds);
+
+    /**
+     * Counts the number of active (unreturned) loan items for a given reader.
+     * Used to enforce the cumulative possession limit (max 5 books per reader).
+     *
+     * @param readerId the reader identifier
+     * @param status   the loan status to match
+     * @return the number of active loan items
+     */
+    @Query("SELECT COUNT(li) FROM LoanItem li WHERE li.loan.reader.id = :readerId AND li.loan.status = :status AND li.returnedAt IS NULL")
+    int countActiveLoanItemsByReaderId(Long readerId, LoanStatus status);
+
+    /**
+     * Finds a loan by ID applying a pessimistic write lock.
+     * Used to serialize concurrent renewal requests for the same loan.
+     *
+     * @param id the loan identifier
+     * @return the locked loan, if found
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    Optional<Loan> findWithLockById(Long id);
 }
