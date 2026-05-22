@@ -8,6 +8,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -34,7 +35,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+            // CSRF is safely disabled because this is a stateless headless REST API
+            // using HTTP Basic Auth. Basic Auth sends credentials explicitly in every
+            // request via the Authorization header, not via session cookies. Without
+            // session cookies, there is no cross-site request forgery (CSRF) attack
+            // surface. See OWASP: https://cheatsheetseries.owasp.org/cheatsheets/
+            // REST_Security_Cheat_Sheet.html#csrf
             .csrf(AbstractHttpConfigurer::disable)
+            .sessionManagement(session ->
+                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.GET, "/api/v1/catalogo/livros/**").permitAll()
                 .requestMatchers("/api/v1/relatorios/**").authenticated()
