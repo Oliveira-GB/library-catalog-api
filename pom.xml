@@ -33,7 +33,7 @@
         <sonar.organization>oliveira-gb</sonar.organization>
         <sonar.projectKey>Oliveira-GB_library-catalog-api</sonar.projectKey>
         <sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
-        <sonar.coverage.exclusions>**/config/**,**/dto/**,**/exception/**,**/entity/**,**/domain/**</sonar.coverage.exclusions>
+        <sonar.coverage.exclusions>**/config/**,**/dto/**,**/exception/**,**/entity/**</sonar.coverage.exclusions>
     </properties>
 
     <dependencyManagement>
