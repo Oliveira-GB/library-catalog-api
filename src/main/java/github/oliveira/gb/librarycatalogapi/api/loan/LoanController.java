@@ -4,6 +4,8 @@ import github.oliveira.gb.librarycatalogapi.domain.loan.Loan;
 import github.oliveira.gb.librarycatalogapi.domain.loan.LoanService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,5 +41,18 @@ public class LoanController {
 
         URI location = URI.create("/api/v1/emprestimos/" + loan.getId());
         return ResponseEntity.created(location).body(response);
+    }
+
+    /**
+     * Renews an existing active loan by extending its due date.
+     *
+     * @param id the loan identifier
+     * @return the updated loan with HTTP 200
+     */
+    @PatchMapping("/{id}/renovacao")
+    public ResponseEntity<LoanRenewalResponse> renewLoan(@PathVariable Long id) {
+        Loan loan = loanService.renewLoan(id);
+        LoanRenewalResponse response = loanMapper.toRenewalResponse(loan);
+        return ResponseEntity.ok(response);
     }
 }

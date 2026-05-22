@@ -25,4 +25,13 @@ public class LoanMapper {
                 loan.getCreatedAt()
         );
     }
+
+    public LoanRenewalResponse toRenewalResponse(Loan loan) {
+        return new LoanRenewalResponse(
+                loan.getId(),
+                loan.getStatus().name(),
+                loan.getRenewalCount(),
+                loan.getDueDate()
+        );
+    }
 }

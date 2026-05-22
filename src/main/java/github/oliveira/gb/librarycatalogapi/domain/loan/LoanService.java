@@ -4,6 +4,8 @@ import github.oliveira.gb.librarycatalogapi.domain.book.Book;
 import github.oliveira.gb.librarycatalogapi.domain.book.BookRepository;
 import github.oliveira.gb.librarycatalogapi.domain.book.BookStatus;
 import github.oliveira.gb.librarycatalogapi.domain.loan.exception.DuplicateTitleException;
+import github.oliveira.gb.librarycatalogapi.domain.loan.exception.LoanAlreadyReturnedException;
+import github.oliveira.gb.librarycatalogapi.domain.loan.exception.MaxRenewalsReachedException;
 import github.oliveira.gb.librarycatalogapi.domain.loan.validation.LoanValidationContext;
 import github.oliveira.gb.librarycatalogapi.domain.loan.validation.LoanValidationOrchestrator;
 import github.oliveira.gb.librarycatalogapi.domain.reader.Reader;
@@ -25,6 +27,7 @@ import java.util.List;
 public class LoanService {
 
     private static final int DEFAULT_LOAN_DAYS = 14;
+    private static final int MAX_RENEWALS = 3;
 
     private final ReaderRepository readerRepository;
     private final BookRepository bookRepository;
@@ -104,5 +107,44 @@ public class LoanService {
         saved.getItems().forEach(item -> item.getBook().getId());
 
         return saved;
+    }
+
+    /**
+     * Renews an active loan by extending its due date and incrementing the renewal counter.
+     *
+     * <p>Business rules enforced:</p>
+     * <ul>
+     *   <li>The loan must have status {@code ATIVO}.</li>
+     *   <li>The loan must not have reached the maximum allowed renewals ({@value MAX_RENEWALS}).</li>
+     * </ul>
+     *
+     * @param loanId the loan identifier to renew
+     * @return the updated Loan entity
+     * @throws ResourceNotFoundException      if the loan does not exist
+     * @throws LoanAlreadyReturnedException   if the loan has already been finalized
+     * @throws MaxRenewalsReachedException    if the maximum renewal count has been reached
+     */
+    @Transactional
+    public Loan renewLoan(Long loanId) {
+        Loan loan = loanRepository.findWithLockById(loanId)
+                .orElseThrow(() -> new ResourceNotFoundException("Loan not found with id: " + loanId));
+
+        if (loan.getStatus() != LoanStatus.ATIVO) {
+            throw new LoanAlreadyReturnedException(
+                    "Loan has already been returned and cannot be renewed."
+            );
+        }
+
+        if (loan.getRenewalCount() >= MAX_RENEWALS) {
+            throw new MaxRenewalsReachedException(
+                    "Maximum number of renewals (" + MAX_RENEWALS + ") has already been reached for this loan."
+            );
+        }
+
+        Instant now = Instant.now();
+        loan.setDueDate(now.plus(DEFAULT_LOAN_DAYS, ChronoUnit.DAYS));
+        loan.setRenewalCount(loan.getRenewalCount() + 1);
+
+        return loan;
     }
 }
