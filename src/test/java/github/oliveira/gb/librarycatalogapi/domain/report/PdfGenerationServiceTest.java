@@ -58,7 +58,8 @@ class PdfGenerationServiceTest {
     @DisplayName("Should throw exception for non-record types")
     void shouldThrowExceptionForNonRecordTypes() {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        assertThatThrownBy(() -> service.generateFinancialPdf(List.of("invalid"), out))
+        List<String> invalidData = List.of("invalid");
+        assertThatThrownBy(() -> service.generateFinancialPdf(invalidData, out))
                 .isInstanceOf(DocumentGenerationException.class)
                 .hasMessageContaining("Java Records only");
     }

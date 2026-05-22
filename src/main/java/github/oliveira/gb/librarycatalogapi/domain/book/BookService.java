@@ -24,6 +24,8 @@ import java.util.stream.Collectors;
 @Service
 public class BookService {
 
+    private static final String BOOK_NOT_FOUND_BY_ID = "Book not found with id: ";
+
     private final BookRepository bookRepository;
     private final CategoryRepository categoryRepository;
     private final AuthorRepository authorRepository;
@@ -91,7 +93,7 @@ public class BookService {
     @Transactional(readOnly = true)
     public Book findById(Long id) {
         return bookRepository.findByIdWithAuthorsAndCategory(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(BOOK_NOT_FOUND_BY_ID + id));
     }
 
     /**
@@ -128,7 +130,7 @@ public class BookService {
         String trimmedIsbn = isbn.trim();
 
         Book book = bookRepository.findByIdWithAuthorsAndCategory(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(BOOK_NOT_FOUND_BY_ID + id));
 
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + categoryId));
@@ -164,7 +166,7 @@ public class BookService {
     @Transactional
     public void deactivate(Long id) {
         Book book = bookRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(BOOK_NOT_FOUND_BY_ID + id));
 
         if (book.getStatus() == BookStatus.EMPRESTADO) {
             throw new BookLoanedException(

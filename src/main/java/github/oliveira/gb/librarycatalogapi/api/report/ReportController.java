@@ -43,7 +43,7 @@ public class ReportController {
      * @throws HttpMediaTypeNotAcceptableException if the requested format is not supported
      */
     @GetMapping(value = "/inventario")
-    public ResponseEntity<?> inventoryReport(
+    public ResponseEntity<Object> inventoryReport(
             @RequestHeader(value = "Accept", defaultValue = MediaType.APPLICATION_JSON_VALUE) String accept)
             throws HttpMediaTypeNotAcceptableException {
         List<InventoryReportResponse> data = reportService.generateInventoryReport();
@@ -61,7 +61,7 @@ public class ReportController {
      * @throws HttpMediaTypeNotAcceptableException if the requested format is not supported
      */
     @GetMapping(value = "/financeiro")
-    public ResponseEntity<?> financialReport(
+    public ResponseEntity<Object> financialReport(
             @RequestHeader(value = "Accept", defaultValue = MediaType.APPLICATION_JSON_VALUE) String accept)
             throws HttpMediaTypeNotAcceptableException {
         List<FinancialReportResponse> data = reportService.generateFinancialReport();
@@ -70,7 +70,7 @@ public class ReportController {
                 pdfGenerationService::generateFinancialPdf);
     }
 
-    private <T> ResponseEntity<?> generateReportResponse(
+    private <T> ResponseEntity<Object> generateReportResponse(
             String accept,
             List<T> data,
             BiConsumer<List<T>, OutputStream> csvGenerator,

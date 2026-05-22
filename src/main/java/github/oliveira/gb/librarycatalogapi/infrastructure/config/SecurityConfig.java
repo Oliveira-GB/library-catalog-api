@@ -1,5 +1,6 @@
 package github.oliveira.gb.librarycatalogapi.infrastructure.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -24,6 +25,11 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private static final String ADMIN_ROLE = "ADMIN";
+    private final String adminPassword;
+
+    public SecurityConfig(@Value("${app.security.admin-password}") String adminPassword) {
+        this.adminPassword = adminPassword;
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -44,10 +50,10 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UserDetailsService userDetailsService() {
+    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
         UserDetails admin = User.builder()
             .username("admin")
-            .password(passwordEncoder().encode("admin"))
+            .password(passwordEncoder.encode(adminPassword))
             .roles(ADMIN_ROLE)
             .build();
         return new InMemoryUserDetailsManager(admin);

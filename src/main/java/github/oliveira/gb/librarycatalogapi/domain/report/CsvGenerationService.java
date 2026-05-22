@@ -47,8 +47,8 @@ public class CsvGenerationService {
              CSVPrinter printer = new CSVPrinter(writer, CSVFormat.DEFAULT.builder()
                      .setHeader(headers)
                      .build())) {
-            for (Object record : data) {
-                writeRecord(record, printer);
+            for (Object recordItem : data) {
+                writeRecord(recordItem, printer);
             }
             printer.flush();
         } catch (IOException e) {
@@ -56,8 +56,8 @@ public class CsvGenerationService {
         }
     }
 
-    private void writeRecord(Object record, CSVPrinter printer) throws IOException {
-        if (record instanceof java.lang.Record r) {
+    private void writeRecord(Object recordItem, CSVPrinter printer) throws IOException {
+        if (recordItem instanceof java.lang.Record r) {
             for (RecordComponent component : r.getClass().getRecordComponents()) {
                 try {
                     Object value = component.getAccessor().invoke(r);

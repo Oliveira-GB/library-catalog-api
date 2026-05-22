@@ -130,7 +130,8 @@ class BookServiceTest {
             when(categoryRepository.findById(nonExistentCategoryId)).thenReturn(Optional.empty());
 
             // Act & Assert
-            assertThatThrownBy(() -> bookService.create("Title", "978-0-123", nonExistentCategoryId, List.of(1L)))
+            List<Long> authorIds = List.of(1L);
+            assertThatThrownBy(() -> bookService.create("Title", "978-0-123", nonExistentCategoryId, authorIds))
                     .isInstanceOf(ResourceNotFoundException.class)
                     .hasMessageContaining("Category not found with id: " + nonExistentCategoryId);
 
@@ -303,7 +304,8 @@ class BookServiceTest {
             when(bookRepository.findByIdWithAuthorsAndCategory(nonExistentId)).thenReturn(Optional.empty());
 
             // Act & Assert
-            assertThatThrownBy(() -> bookService.update(nonExistentId, "Title", "978-0-123", 1L, List.of(1L)))
+            List<Long> authorIds = List.of(1L);
+            assertThatThrownBy(() -> bookService.update(nonExistentId, "Title", "978-0-123", 1L, authorIds))
                     .isInstanceOf(ResourceNotFoundException.class)
                     .hasMessageContaining("Book not found with id: " + nonExistentId);
         }
@@ -327,7 +329,8 @@ class BookServiceTest {
                     .thenThrow(new DataIntegrityViolationException("Unique constraint violation"));
 
             // Act & Assert
-            assertThatThrownBy(() -> bookService.update(bookId, "Title", "978-0-new", 1L, List.of(1L)))
+            List<Long> authorIds = List.of(1L);
+            assertThatThrownBy(() -> bookService.update(bookId, "Title", "978-0-new", 1L, authorIds))
                     .isInstanceOf(DataIntegrityViolationException.class)
                     .hasMessageContaining("Book with ISBN '978-0-new' already exists");
         }

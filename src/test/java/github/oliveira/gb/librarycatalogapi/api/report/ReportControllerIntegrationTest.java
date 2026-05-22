@@ -60,6 +60,7 @@ class ReportControllerIntegrationTest {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
+        registry.add("app.security.admin-password", () -> "admin");
     }
 
     @Autowired
@@ -181,7 +182,7 @@ class ReportControllerIntegrationTest {
         void shouldExcludeInactiveBooksFromInventoryReport() throws Exception {
             Category cat = createCategory("InactiveTest");
             Author auth = createAuthor("InactiveAuthor", "inactive@example.com");
-            Book activeBook = createBook("Active Book", "978-0-00-000004-0", cat, auth, BookStatus.DISPONIVEL);
+            createBook("Active Book", "978-0-00-000004-0", cat, auth, BookStatus.DISPONIVEL);
             Book inactiveBook = createBook("Inactive Book", "978-0-00-000005-0", cat, auth, BookStatus.DISPONIVEL);
             inactiveBook.setActive(false);
             bookRepository.save(inactiveBook);

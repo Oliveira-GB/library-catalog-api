@@ -8,7 +8,6 @@ import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.RecordComponent;
 import java.util.List;
@@ -46,7 +45,7 @@ public class PdfGenerationService {
 
     private void generatePdf(List<?> data, OutputStream out, String title, String[] headers) {
         Document document = new Document();
-        try {
+        try (document) {
             PdfWriter.getInstance(document, out);
             document.open();
             document.add(new Phrase(title));
@@ -60,22 +59,18 @@ public class PdfGenerationService {
                 table.addCell(cell);
             }
 
-            for (Object record : data) {
-                writeRecordToTable(record, table);
+            for (Object recordItem : data) {
+                writeRecordToTable(recordItem, table);
             }
 
             document.add(table);
         } catch (DocumentException e) {
             throw new DocumentGenerationException("Failed to generate PDF document", e);
-        } finally {
-            if (document.isOpen()) {
-                document.close();
-            }
         }
     }
 
-    private void writeRecordToTable(Object record, PdfPTable table) {
-        if (record instanceof java.lang.Record r) {
+    private void writeRecordToTable(Object recordItem, PdfPTable table) {
+        if (recordItem instanceof java.lang.Record r) {
             for (RecordComponent component : r.getClass().getRecordComponents()) {
                 try {
                     Object value = component.getAccessor().invoke(r);
