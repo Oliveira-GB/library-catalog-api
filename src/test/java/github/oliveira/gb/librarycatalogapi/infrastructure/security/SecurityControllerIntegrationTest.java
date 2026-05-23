@@ -29,6 +29,7 @@ import org.testcontainers.utility.DockerImageName;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -170,6 +171,36 @@ class SecurityControllerIntegrationTest {
                     .andExpect(jsonPath("$.type").value("https://api.library-catalog.com/errors/unauthorized"))
                     .andExpect(jsonPath("$.title").value("Unauthorized"))
                     .andExpect(jsonPath("$.status").value(401));
+        }
+    }
+
+    @Nested
+    @DisplayName("OpenAPI Documentation - Public Access")
+    class OpenApiDocumentationTests {
+
+        @Test
+        @DisplayName("Should return 200 OK without authentication on /v3/api-docs")
+        void shouldReturn200OkWithoutAuthenticationOnV3ApiDocs() throws Exception {
+            ResultActions result = mockMvc.perform(get("/v3/api-docs")
+                    .accept(MediaType.APPLICATION_JSON));
+
+            result.andExpect(status().isOk())
+                    .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.openapi").exists())
+                    .andExpect(jsonPath("$.info.title").value("Library Catalog Management API"))
+                    .andExpect(jsonPath("$.paths").exists());
+        }
+
+        @Test
+        @DisplayName("Should expose Basic Auth security scheme in OpenAPI contract")
+        void shouldExposeBasicAuthSecuritySchemeInOpenApiContract() throws Exception {
+            ResultActions result = mockMvc.perform(get("/v3/api-docs")
+                    .accept(MediaType.APPLICATION_JSON));
+
+            result.andExpect(status().isOk())
+                    .andExpect(jsonPath("$.components.securitySchemes.basicAuth").exists())
+                    .andExpect(jsonPath("$.components.securitySchemes.basicAuth.type").value("http"))
+                    .andExpect(jsonPath("$.components.securitySchemes.basicAuth.scheme").value("basic"));
         }
     }
 
