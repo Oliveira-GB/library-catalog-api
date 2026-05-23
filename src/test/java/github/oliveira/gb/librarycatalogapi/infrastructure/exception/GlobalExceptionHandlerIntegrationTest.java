@@ -9,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
@@ -36,6 +37,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("Global Exception Handler Integration Tests")
 class GlobalExceptionHandlerIntegrationTest {
 
+    private static final String AUTH_USER = "admin";
+    private static final String AUTH_PASS = "admin123";
+
     private static final String BASE_API_PATH = "/api/v1/test";
 
     @Autowired
@@ -52,7 +56,9 @@ class GlobalExceptionHandlerIntegrationTest {
             Long resourceId = 999L;
 
             // Act
-            ResultActions result = mockMvc.perform(get(BASE_API_PATH + "/{id}", resourceId));
+            ResultActions result = mockMvc.perform(get(BASE_API_PATH + "/{id}", resourceId)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+            );
 
             // Assert
             result.andExpect(status().isNotFound())
@@ -67,7 +73,9 @@ class GlobalExceptionHandlerIntegrationTest {
         @DisplayName("Should return RFC 7807 response with required fields only")
         void shouldReturnRfc7807ResponseWithRequiredFields() throws Exception {
             // Act
-            ResultActions result = mockMvc.perform(get(BASE_API_PATH + "/123"));
+            ResultActions result = mockMvc.perform(get(BASE_API_PATH + "/123")
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+            );
 
             // Assert - Verify all RFC 7807 required fields are present
             result.andExpect(status().isNotFound())
@@ -96,6 +104,8 @@ class GlobalExceptionHandlerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(post(BASE_API_PATH + "/validation")
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(invalidRequest));
 
@@ -124,6 +134,8 @@ class GlobalExceptionHandlerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(post(BASE_API_PATH + "/validation")
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(invalidRequest));
 
@@ -152,6 +164,8 @@ class GlobalExceptionHandlerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(post(BASE_API_PATH + "/validation")
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(invalidRequest));
 
@@ -175,6 +189,8 @@ class GlobalExceptionHandlerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(post(BASE_API_PATH + "/validation")
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(validRequest));
 
@@ -191,7 +207,9 @@ class GlobalExceptionHandlerIntegrationTest {
         @DisplayName("Should return RFC 7807 response with HTTP 409 for data conflict")
         void shouldReturnRfc7807ResponseWithHttp409ForDataConflict() throws Exception {
             // Act
-            ResultActions result = mockMvc.perform(post(BASE_API_PATH + "/conflict"));
+            ResultActions result = mockMvc.perform(post(BASE_API_PATH + "/conflict")
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+            );
 
             // Assert
             result.andExpect(status().isConflict())
@@ -206,7 +224,9 @@ class GlobalExceptionHandlerIntegrationTest {
         @DisplayName("Should return sanitized message without SQL or constraint details")
         void shouldReturnSanitizedMessageWithoutSqlOrConstraintDetails() throws Exception {
             // Act
-            ResultActions result = mockMvc.perform(post(BASE_API_PATH + "/conflict"));
+            ResultActions result = mockMvc.perform(post(BASE_API_PATH + "/conflict")
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+            );
 
             // Assert - Verify no SQL details are leaked
             String responseContent = result.andReturn().getResponse().getContentAsString();
@@ -225,7 +245,9 @@ class GlobalExceptionHandlerIntegrationTest {
         @DisplayName("Should not expose internal database information in error response")
         void shouldNotExposeInternalDatabaseInformationInErrorResponse() throws Exception {
             // Act
-            ResultActions result = mockMvc.perform(post(BASE_API_PATH + "/conflict"));
+            ResultActions result = mockMvc.perform(post(BASE_API_PATH + "/conflict")
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+            );
 
             // Assert
             String responseContent = result.andReturn().getResponse().getContentAsString();
@@ -247,7 +269,9 @@ class GlobalExceptionHandlerIntegrationTest {
         @DisplayName("Should include all required RFC 7807 fields in error responses")
         void shouldIncludeAllRequiredRfc7807FieldsInErrorResponses() throws Exception {
             // Act
-            ResultActions result = mockMvc.perform(get(BASE_API_PATH + "/999"));
+            ResultActions result = mockMvc.perform(get(BASE_API_PATH + "/999")
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+            );
 
             // Assert - Verify all RFC 7807 required fields
             result.andExpect(status().isNotFound())
@@ -262,7 +286,9 @@ class GlobalExceptionHandlerIntegrationTest {
         @DisplayName("Should use absolute URI for type field")
         void shouldUseAbsoluteUriForTypeField() throws Exception {
             // Act
-            ResultActions result = mockMvc.perform(get(BASE_API_PATH + "/999"));
+            ResultActions result = mockMvc.perform(get(BASE_API_PATH + "/999")
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+            );
 
             // Assert
             result.andExpect(status().isNotFound())
@@ -273,7 +299,9 @@ class GlobalExceptionHandlerIntegrationTest {
         @DisplayName("Should return JSON content type for all error responses")
         void shouldReturnJsonContentTypeForAllErrorResponses() throws Exception {
             // Act
-            ResultActions result = mockMvc.perform(get(BASE_API_PATH + "/999"));
+            ResultActions result = mockMvc.perform(get(BASE_API_PATH + "/999")
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+            );
 
             // Assert
             result.andExpect(status().isNotFound())

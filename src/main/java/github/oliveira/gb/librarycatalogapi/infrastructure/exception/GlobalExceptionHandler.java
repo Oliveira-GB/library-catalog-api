@@ -17,6 +17,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -179,6 +181,50 @@ public class GlobalExceptionHandler {
         problemDetail.setType(URI.create(BASE_ERROR_URI + "media-type-not-acceptable"));
         problemDetail.setTitle("Media Type Not Acceptable");
         problemDetail.setInstance(URI.create(extractRequestPath(request)));
+        return problemDetail;
+    }
+
+    /**
+     * Handles authentication failures as a fallback layer.
+     * Returns HTTP 401 with standardized RFC 7807 problem detail.
+     *
+     * @param ex the authentication exception
+     * @param request the current web request
+     * @return ProblemDetail with RFC 7807 structure
+     */
+    @ExceptionHandler(AuthenticationException.class)
+    public ProblemDetail handleAuthenticationException(AuthenticationException ex, WebRequest request) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.UNAUTHORIZED,
+                "Authentication is required to access this resource."
+        );
+
+        problemDetail.setType(URI.create(BASE_ERROR_URI + "unauthorized"));
+        problemDetail.setTitle("Unauthorized");
+        problemDetail.setInstance(URI.create(extractRequestPath(request)));
+
+        return problemDetail;
+    }
+
+    /**
+     * Handles access denied failures as a fallback layer.
+     * Returns HTTP 403 with standardized RFC 7807 problem detail.
+     *
+     * @param ex the access denied exception
+     * @param request the current web request
+     * @return ProblemDetail with RFC 7807 structure
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ProblemDetail handleAccessDeniedException(AccessDeniedException ex, WebRequest request) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.FORBIDDEN,
+                "You do not have permission to access this resource."
+        );
+
+        problemDetail.setType(URI.create(BASE_ERROR_URI + "forbidden"));
+        problemDetail.setTitle("Forbidden");
+        problemDetail.setInstance(URI.create(extractRequestPath(request)));
+
         return problemDetail;
     }
 

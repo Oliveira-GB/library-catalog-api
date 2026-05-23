@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -33,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @Testcontainers
-@AutoConfigureMockMvc(addFilters = false)
+@AutoConfigureMockMvc
 @ActiveProfiles("test")
 @DisplayName("Author Controller Integration Tests")
 class AuthorControllerIntegrationTest {
@@ -56,6 +57,9 @@ class AuthorControllerIntegrationTest {
 
     @Autowired
     private AuthorRepository authorRepository;
+
+    private static final String AUTH_USER = "admin";
+    private static final String AUTH_PASS = "admin123";
 
     private static final String BASE_API_PATH = "/api/v1/autores";
 
@@ -82,6 +86,8 @@ class AuthorControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
@@ -110,6 +116,8 @@ class AuthorControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
@@ -133,6 +141,8 @@ class AuthorControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
@@ -155,6 +165,8 @@ class AuthorControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
@@ -176,6 +188,8 @@ class AuthorControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
@@ -196,6 +210,8 @@ class AuthorControllerIntegrationTest {
                     """;
 
             mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
                     .andExpect(status().isCreated());
@@ -209,6 +225,8 @@ class AuthorControllerIntegrationTest {
                     """;
 
             ResultActions result = mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(duplicateRequest));
 
@@ -233,6 +251,8 @@ class AuthorControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
@@ -255,6 +275,8 @@ class AuthorControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
@@ -277,6 +299,8 @@ class AuthorControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
@@ -301,6 +325,8 @@ class AuthorControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(get(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .param("page", "0")
                     .param("size", "10"));
 
@@ -318,6 +344,8 @@ class AuthorControllerIntegrationTest {
         void shouldReturnEmptyPageWhenNoAuthorsExist() throws Exception {
             // Act - Request page 100 (likely empty)
             ResultActions result = mockMvc.perform(get(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .param("page", "100")
                     .param("size", "10"));
 
@@ -337,6 +365,8 @@ class AuthorControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(get(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .param("page", "0")
                     .param("size", "2"));
 
@@ -354,6 +384,8 @@ class AuthorControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(get(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .param("page", "0")
                     .param("size", "10"));
 
@@ -389,7 +421,9 @@ class AuthorControllerIntegrationTest {
                     .orElseThrow();
 
             // Act
-            ResultActions result = mockMvc.perform(delete(BASE_API_PATH + "/" + authorId));
+            ResultActions result = mockMvc.perform(delete(BASE_API_PATH + "/" + authorId)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+            );
 
             // Assert
             result.andExpect(status().isNoContent());
@@ -399,7 +433,9 @@ class AuthorControllerIntegrationTest {
         @DisplayName("Should return HTTP 404 for non-existent author")
         void shouldReturnHttp404ForNonExistentAuthor() throws Exception {
             // Act
-            ResultActions result = mockMvc.perform(delete(BASE_API_PATH + "/99999"));
+            ResultActions result = mockMvc.perform(delete(BASE_API_PATH + "/99999")
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+            );
 
             // Assert
             result.andExpect(status().isNotFound())
@@ -423,16 +459,22 @@ class AuthorControllerIntegrationTest {
                     .orElseThrow();
 
             // Verify author is in the list before deletion
-            mockMvc.perform(get(BASE_API_PATH))
+            mockMvc.perform(get(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+            )
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content[*].name", hasItem(authorName)));
 
             // Act - Delete the author
-            mockMvc.perform(delete(BASE_API_PATH + "/" + authorId))
+            mockMvc.perform(delete(BASE_API_PATH + "/" + authorId)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+            )
                     .andExpect(status().isNoContent());
 
             // Assert - Verify author is NOT in the list after deletion
-            mockMvc.perform(get(BASE_API_PATH))
+            mockMvc.perform(get(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+            )
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content[*].name", not(hasItem(authorName))));
         }
@@ -447,6 +489,8 @@ class AuthorControllerIntegrationTest {
                 """, name, email);
 
         mockMvc.perform(post(BASE_API_PATH)
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isCreated());
@@ -462,6 +506,8 @@ class AuthorControllerIntegrationTest {
                 """, name, email, biography);
 
         mockMvc.perform(post(BASE_API_PATH)
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isCreated());

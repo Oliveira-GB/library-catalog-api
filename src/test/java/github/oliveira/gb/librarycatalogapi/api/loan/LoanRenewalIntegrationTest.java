@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -48,10 +49,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @Testcontainers
-@AutoConfigureMockMvc(addFilters = false)
+@AutoConfigureMockMvc
 @ActiveProfiles("test")
 @DisplayName("Loan Renewal Integration Tests")
 class LoanRenewalIntegrationTest {
+
+    private static final String AUTH_USER = "admin";
+    private static final String AUTH_PASS = "admin123";
 
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(DockerImageName.parse("postgres:16"))
@@ -136,6 +140,8 @@ class LoanRenewalIntegrationTest {
             Loan loan = createLoanWithRenewals(reader, book, 2, LoanStatus.ATIVO, originalDueDate);
 
             ResultActions result = mockMvc.perform(patch("/api/v1/emprestimos/{id}/renovacao", loan.getId())
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON));
 
             result.andExpect(status().isOk())
@@ -163,6 +169,8 @@ class LoanRenewalIntegrationTest {
             Loan loan = createLoanWithRenewals(reader, book, 3, LoanStatus.ATIVO, originalDueDate);
 
             ResultActions result = mockMvc.perform(patch("/api/v1/emprestimos/{id}/renovacao", loan.getId())
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON));
 
             result.andExpect(status().isUnprocessableEntity())
@@ -181,6 +189,8 @@ class LoanRenewalIntegrationTest {
     @DisplayName("Should return HTTP 404 when loan does not exist")
     void shouldReturnHttp404WhenLoanNotFound() throws Exception {
         mockMvc.perform(patch("/api/v1/emprestimos/{id}/renovacao", 99999L)
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.title").value("Resource Not Found"));
@@ -197,6 +207,8 @@ class LoanRenewalIntegrationTest {
             Loan loan = createLoanWithRenewals(reader, book, 1, LoanStatus.FINALIZADO, originalDueDate);
 
             ResultActions result = mockMvc.perform(patch("/api/v1/emprestimos/{id}/renovacao", loan.getId())
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON));
 
             result.andExpect(status().isUnprocessableEntity())
@@ -230,6 +242,8 @@ class LoanRenewalIntegrationTest {
                 futures.add(executor.submit(() -> {
                     latch.await();
                     var response = mockMvc.perform(patch("/api/v1/emprestimos/{id}/renovacao", loan.getId())
+                            .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                                     .contentType(MediaType.APPLICATION_JSON))
                             .andReturn()
                             .getResponse();

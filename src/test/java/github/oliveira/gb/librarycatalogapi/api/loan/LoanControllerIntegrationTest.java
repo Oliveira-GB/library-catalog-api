@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -45,7 +46,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @Testcontainers
-@AutoConfigureMockMvc(addFilters = false)
+@AutoConfigureMockMvc
 @ActiveProfiles("test")
 @DisplayName("Loan Controller Integration Tests")
 class LoanControllerIntegrationTest {
@@ -77,6 +78,9 @@ class LoanControllerIntegrationTest {
 
     @Autowired
     private LoanRepository loanRepository;
+
+    private static final String AUTH_USER = "admin";
+    private static final String AUTH_PASS = "admin123";
 
     private static final String BASE_API_PATH = "/api/v1/emprestimos";
 
@@ -110,6 +114,8 @@ class LoanControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
@@ -143,6 +149,8 @@ class LoanControllerIntegrationTest {
                     """, reader.getId(), bookIds);
 
             ResultActions result = mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
@@ -166,6 +174,8 @@ class LoanControllerIntegrationTest {
                     """, reader.getId(), book.getId(), book.getId());
 
             ResultActions result = mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
@@ -190,6 +200,8 @@ class LoanControllerIntegrationTest {
                     """, reader.getId(), book.getId());
 
             ResultActions result = mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
@@ -208,6 +220,8 @@ class LoanControllerIntegrationTest {
                     """;
 
             ResultActions result = mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
@@ -228,6 +242,8 @@ class LoanControllerIntegrationTest {
                     """, reader.getId());
 
             ResultActions result = mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
@@ -245,6 +261,8 @@ class LoanControllerIntegrationTest {
                     """;
 
             ResultActions result = mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
@@ -273,6 +291,8 @@ class LoanControllerIntegrationTest {
                 futures.add(executor.submit(() -> {
                     latch.await();
                     var response = mockMvc.perform(post(BASE_API_PATH)
+                            .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(requestBody))
                             .andReturn()
@@ -323,6 +343,8 @@ class LoanControllerIntegrationTest {
             futures.add(executor.submit(() -> {
                 latch.await();
                 var response = mockMvc.perform(post(BASE_API_PATH)
+                        .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestBody1))
                         .andReturn()
@@ -333,6 +355,8 @@ class LoanControllerIntegrationTest {
             futures.add(executor.submit(() -> {
                 latch.await();
                 var response = mockMvc.perform(post(BASE_API_PATH)
+                        .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestBody2))
                         .andReturn()

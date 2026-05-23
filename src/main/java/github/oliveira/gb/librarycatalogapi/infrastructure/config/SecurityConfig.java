@@ -1,46 +1,49 @@
 package github.oliveira.gb.librarycatalogapi.infrastructure.config;
 
-import org.springframework.beans.factory.annotation.Value;
+import github.oliveira.gb.librarycatalogapi.domain.admin.DatabaseUserDetailsService;
+import github.oliveira.gb.librarycatalogapi.infrastructure.exception.security.SecurityProblemDetailsAccessDeniedHandler;
+import github.oliveira.gb.librarycatalogapi.infrastructure.exception.security.SecurityProblemDetailsAuthenticationEntryPoint;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
- * Security configuration providing Basic Auth for administrative routes
+ * Security configuration providing database-backed Basic Auth for administrative routes
  * and permitting public access to the ISBN catalog lookup endpoint.
+ *
+ * <p>CSRF is safely disabled because this is a stateless headless REST API using HTTP
+ * Basic Auth. Basic Auth sends credentials explicitly in every request via the
+ * Authorization header, not via session cookies. Without session cookies, there is no
+ * cross-site request forgery (CSRF) attack surface.</p>
+ *
+ * <p>See OWASP REST Security Cheat Sheet for justification:</p>
  */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private static final String ADMIN_ROLE = "ADMIN";
-    private final String adminPassword;
+    private final DatabaseUserDetailsService databaseUserDetailsService;
+    private final SecurityProblemDetailsAuthenticationEntryPoint authenticationEntryPoint;
+    private final SecurityProblemDetailsAccessDeniedHandler accessDeniedHandler;
 
-    public SecurityConfig(@Value("${app.security.admin-password}") String adminPassword) {
-        this.adminPassword = adminPassword;
+    public SecurityConfig(DatabaseUserDetailsService databaseUserDetailsService,
+                          SecurityProblemDetailsAuthenticationEntryPoint authenticationEntryPoint,
+                          SecurityProblemDetailsAccessDeniedHandler accessDeniedHandler) {
+        this.databaseUserDetailsService = databaseUserDetailsService;
+        this.authenticationEntryPoint = authenticationEntryPoint;
+        this.accessDeniedHandler = accessDeniedHandler;
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            // CSRF is safely disabled because this is a stateless headless REST API
-            // using HTTP Basic Auth. Basic Auth sends credentials explicitly in every
-            // request via the Authorization header, not via session cookies. Without
-            // session cookies, there is no cross-site request forgery (CSRF) attack
-            // surface. See OWASP: https://cheatsheetseries.owasp.org/cheatsheets/
-            // REST_Security_Cheat_Sheet.html#csrf
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(session ->
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -49,22 +52,17 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/relatorios/**").authenticated()
                 .anyRequest().authenticated()
             )
-            .httpBasic(Customizer.withDefaults());
+            .userDetailsService(databaseUserDetailsService)
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint(authenticationEntryPoint)
+                .accessDeniedHandler(accessDeniedHandler)
+            )
+            .httpBasic(basic -> basic.authenticationEntryPoint(authenticationEntryPoint));
         return http.build();
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
-        UserDetails admin = User.builder()
-            .username("admin")
-            .password(passwordEncoder.encode(adminPassword))
-            .roles(ADMIN_ROLE)
-            .build();
-        return new InMemoryUserDetailsManager(admin);
     }
 }

@@ -53,7 +53,6 @@ class CatalogControllerIntegrationTest {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
-        registry.add("app.security.admin-password", () -> "admin");
     }
 
     @Autowired
@@ -73,7 +72,7 @@ class CatalogControllerIntegrationTest {
 
     private static final String BASE_API_PATH = "/api/v1/catalogo";
     private static final String AUTH_USER = "admin";
-    private static final String AUTH_PASS = "admin";
+    private static final String AUTH_PASS = "admin123";
 
     @AfterEach
     void tearDown() {
