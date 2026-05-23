@@ -3,11 +3,6 @@ spring:
     activate:
       on-profile: test
 
-# Security configuration for tests
-app:
-  security:
-    admin-password: admin
-
   # Datasource is configured automatically by @ServiceConnection
   # Testcontainers manages PostgreSQL container lifecycle
   sql:

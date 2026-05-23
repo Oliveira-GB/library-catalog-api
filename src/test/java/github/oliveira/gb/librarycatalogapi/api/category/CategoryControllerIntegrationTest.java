@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -32,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @Testcontainers
-@AutoConfigureMockMvc(addFilters = false)
+@AutoConfigureMockMvc
 @ActiveProfiles("test")
 @DisplayName("Category Controller Integration Tests")
 class CategoryControllerIntegrationTest {
@@ -55,6 +56,9 @@ class CategoryControllerIntegrationTest {
 
     @Autowired
     private CategoryRepository categoryRepository;
+
+    private static final String AUTH_USER = "admin";
+    private static final String AUTH_PASS = "admin123";
 
     private static final String BASE_API_PATH = "/api/v1/categorias";
 
@@ -79,6 +83,8 @@ class CategoryControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
@@ -104,6 +110,8 @@ class CategoryControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
@@ -128,6 +136,8 @@ class CategoryControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
@@ -149,6 +159,8 @@ class CategoryControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
@@ -168,12 +180,16 @@ class CategoryControllerIntegrationTest {
                     """;
 
             mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
                     .andExpect(status().isCreated());
 
             // Act - Try to create duplicate
             ResultActions result = mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
@@ -196,6 +212,8 @@ class CategoryControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
@@ -218,6 +236,8 @@ class CategoryControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(get(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .param("page", "0")
                     .param("size", "10"));
 
@@ -235,6 +255,8 @@ class CategoryControllerIntegrationTest {
         void shouldReturnEmptyPageWhenNoCategoriesExist() throws Exception {
             // Act - Request page 100 (likely empty)
             ResultActions result = mockMvc.perform(get(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .param("page", "100")
                     .param("size", "10"));
 
@@ -254,6 +276,8 @@ class CategoryControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(get(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .param("page", "0")
                     .param("size", "2"));
 
@@ -268,6 +292,8 @@ class CategoryControllerIntegrationTest {
         void shouldReturnRfc7807ResponseForAllErrors() throws Exception {
             // Act - Send invalid JSON
             ResultActions result = mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("{invalid json}"));
 
@@ -299,7 +325,9 @@ class CategoryControllerIntegrationTest {
                     .orElseThrow();
 
             // Act
-            ResultActions result = mockMvc.perform(delete(BASE_API_PATH + "/" + categoryId));
+            ResultActions result = mockMvc.perform(delete(BASE_API_PATH + "/" + categoryId)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+            );
 
             // Assert
             result.andExpect(status().isNoContent());
@@ -309,7 +337,9 @@ class CategoryControllerIntegrationTest {
         @DisplayName("Should return HTTP 404 for non-existent category")
         void shouldReturnHttp404ForNonExistentCategory() throws Exception {
             // Act
-            ResultActions result = mockMvc.perform(delete(BASE_API_PATH + "/99999"));
+            ResultActions result = mockMvc.perform(delete(BASE_API_PATH + "/99999")
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+            );
 
             // Assert
             result.andExpect(status().isNotFound())
@@ -332,16 +362,22 @@ class CategoryControllerIntegrationTest {
                     .orElseThrow();
 
             // Verify category is in the list before deletion
-            mockMvc.perform(get(BASE_API_PATH))
+            mockMvc.perform(get(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+            )
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content[*].name", hasItem(categoryName)));
 
             // Act - Delete the category
-            mockMvc.perform(delete(BASE_API_PATH + "/" + categoryId))
+            mockMvc.perform(delete(BASE_API_PATH + "/" + categoryId)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+            )
                     .andExpect(status().isNoContent());
 
             // Assert - Verify category is NOT in the list after deletion
-            mockMvc.perform(get(BASE_API_PATH))
+            mockMvc.perform(get(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+            )
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content[*].name", not(hasItem(categoryName))));
         }
@@ -355,6 +391,8 @@ class CategoryControllerIntegrationTest {
                 """, name);
 
         mockMvc.perform(post(BASE_API_PATH)
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isCreated());

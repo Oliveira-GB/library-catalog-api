@@ -20,9 +20,9 @@ A User Story (US) or task can only be marked as completed `[x]` if it meets ALL 
 * **Architectural Adherence:** The generated code strictly follows the layer rules and restrictions defined in Blocks 2 and 3 of this document.
 
 ## 3. Current Focus (Active Task)
-* **Global Status:** [US 1.7 THROUGH US 1.11 IMPLEMENTATION COMPLETED]
-* **Active Epic / US:** [Epic 1: Central Catalog Management - US 1.7 Book Registration through US 1.11 Book Query]
-* **Immediate Goal:** [All acceptance criteria implemented for US 1.7-1.11: Book CRUD with ISBN validation, JOIN FETCH optimization for detail queries, ManyToMany author sync on PUT, EMPRESTADO status lock on soft delete, lightweight paginated list with EntityGraph. Full test suite passing (172 tests, 0 failures, 5 skipped). Awaiting next US or review].
+* **Global Status:** [EPIC 4 SEARCH/REPORTS IMPLEMENTED. SHIFTING TO SECURITY INFRASTRUCTURE]
+* **Active Epic / US:** [Security Infrastructure: Database-backed Basic Auth & Cryptography]
+* **Immediate Goal:** [Create Flyway migration for admin credentials table. Replace static in-memory Basic Auth with database-backed authentication using `UserDetailsService` and `BCryptPasswordEncoder`. Configure `permitAll()` for public ISBN route and restrict admin/report routes.]
 
 ## 4. Decision Log & Troubleshooting
 * [2026-05-17] [DECISION]: Using .env file for environment variables instead of hardcoded values in docker-compose.yml (security best practice)
@@ -52,6 +52,7 @@ A User Story (US) or task can only be marked as completed `[x]` if it meets ALL 
 * [2026-05-22] [DECISION]: Epic 4 (US 4.1, 4.2, 4.4) implemented. Native SQL projections with `string_agg` used for catalog/ISBN to avoid `@ManyToMany` entity loading. Financial report bypasses `@SQLRestriction` via native query to preserve audit history of inactive readers. Apache Commons CSV + OpenPDF adopted for document generation. Content negotiation driven exclusively by `Accept` header. SecurityConfig introduced with Basic Auth: `/api/v1/catalogo/livros/**` is `permitAll()`, all other endpoints require authentication.
 * [2026-05-22] [DECISION]: CSRF protection safely disabled (`AbstractHttpConfigurer::disable`) and `SessionCreationPolicy.STATELESS` explicitly configured in `SecurityConfig`. This is a deliberate security posture: this is a headless REST API using HTTP Basic Auth (credentials sent in every request via `Authorization` header, not session cookies). Without session cookies, CSRF attacks are impossible. Commented justification added directly in `SecurityConfig` to suppress SonarCloud warning `java:S4502`.
 * [YYYY-MM-DD] [BLOCKER RESOLVED]: [Empty]
+* [2026-05-22] [DECISION]: Administrative security migrated from static "in-memory" to database-backed. New credentials table established via Flyway migration. Passwords strictly hashed using BCrypt. Basic Auth pattern maintained (stateless, no JWT) as defined in project scope.
 
 ## 5. Roadmap & Development Schedule (MVP Scope)
 
@@ -60,7 +61,8 @@ A User Story (US) or task can only be marked as completed `[x]` if it meets ALL 
 - [x] SonarQube Cloud integration with code coverage reporting (JaCoCo).
 - [x] Repository initialization, base packages, and Flyway setup with initial Migration.
 - [x] Domain entities (Category, Author, Book, Reader) with JPA mapping and auditing.
-- [x] Implementation of standard `RestControllerAdvice` (RFC 7807) and static security configuration (Basic Auth with BCrypt for Admin routes).
+- [x] Implementation of standard `RestControllerAdvice` (RFC 7807) for global error handling.
+- [x] Database-backed Security Infrastructure: Flyway migration for admin credentials table, BCrypt hashing, and dynamic Basic Auth configuration.
 - [x] Unified CI/CD Pipeline (GitHub Actions) with Build, Test, SonarQube Quality Gate, and conditional Render deployment.
 - [x] Multi-stage Dockerfile for optimized cloud deployment with non-root runtime user.
 

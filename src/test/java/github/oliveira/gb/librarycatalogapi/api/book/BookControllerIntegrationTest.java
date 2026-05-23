@@ -16,6 +16,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -37,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @Testcontainers
-@AutoConfigureMockMvc(addFilters = false)
+@AutoConfigureMockMvc
 @ActiveProfiles("test")
 @DisplayName("Book Controller Integration Tests")
 class BookControllerIntegrationTest {
@@ -69,6 +70,9 @@ class BookControllerIntegrationTest {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    private static final String AUTH_USER = "admin";
+    private static final String AUTH_PASS = "admin123";
 
     private static final String BASE_API_PATH = "/api/v1/livros";
 
@@ -102,6 +106,8 @@ class BookControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
@@ -140,6 +146,8 @@ class BookControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
@@ -167,6 +175,8 @@ class BookControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
@@ -191,6 +201,8 @@ class BookControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
@@ -216,6 +228,8 @@ class BookControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
@@ -241,6 +255,8 @@ class BookControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
@@ -266,6 +282,8 @@ class BookControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
@@ -296,6 +314,8 @@ class BookControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
@@ -324,6 +344,8 @@ class BookControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(post(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
@@ -347,7 +369,9 @@ class BookControllerIntegrationTest {
             Book book = createBook("Philosophy 101", "978-0-201-63361-0", category, author);
 
             // Act
-            ResultActions result = mockMvc.perform(get(BASE_API_PATH + "/" + book.getId()));
+            ResultActions result = mockMvc.perform(get(BASE_API_PATH + "/" + book.getId())
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+            );
 
             // Assert
             result.andExpect(status().isOk())
@@ -368,7 +392,9 @@ class BookControllerIntegrationTest {
         @DisplayName("Should return HTTP 404 for non-existent book ID")
         void shouldReturnHttp404ForNonExistentBookId() throws Exception {
             // Act
-            ResultActions result = mockMvc.perform(get(BASE_API_PATH + "/99999"));
+            ResultActions result = mockMvc.perform(get(BASE_API_PATH + "/99999")
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+            );
 
             // Assert
             result.andExpect(status().isNotFound())
@@ -391,7 +417,9 @@ class BookControllerIntegrationTest {
             Book book = createBook("Calculus I", "978-3-16-148410-0", category, author);
 
             // Act
-            ResultActions result = mockMvc.perform(get(BASE_API_PATH + "/isbn/" + book.getIsbn()));
+            ResultActions result = mockMvc.perform(get(BASE_API_PATH + "/isbn/" + book.getIsbn())
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+            );
 
             // Assert
             result.andExpect(status().isOk())
@@ -406,7 +434,9 @@ class BookControllerIntegrationTest {
         @DisplayName("Should return HTTP 404 for non-existent ISBN")
         void shouldReturnHttp404ForNonExistentIsbn() throws Exception {
             // Act
-            ResultActions result = mockMvc.perform(get(BASE_API_PATH + "/isbn/978-0-00-000000-0"));
+            ResultActions result = mockMvc.perform(get(BASE_API_PATH + "/isbn/978-0-00-000000-0")
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+            );
 
             // Assert
             result.andExpect(status().isNotFound())
@@ -440,6 +470,8 @@ class BookControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(put(BASE_API_PATH + "/" + book.getId())
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
@@ -472,6 +504,8 @@ class BookControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(put(BASE_API_PATH + "/99999")
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
@@ -501,6 +535,8 @@ class BookControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(put(BASE_API_PATH + "/" + book2.getId())
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
@@ -523,7 +559,9 @@ class BookControllerIntegrationTest {
             Book book = createBook("Temp Book", "978-0-13-708107-3", category, author);
 
             // Act
-            ResultActions result = mockMvc.perform(delete(BASE_API_PATH + "/" + book.getId()));
+            ResultActions result = mockMvc.perform(delete(BASE_API_PATH + "/" + book.getId())
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+            );
 
             // Assert
             result.andExpect(status().isNoContent());
@@ -540,7 +578,9 @@ class BookControllerIntegrationTest {
             bookRepository.save(book);
 
             // Act
-            ResultActions result = mockMvc.perform(delete(BASE_API_PATH + "/" + book.getId()));
+            ResultActions result = mockMvc.perform(delete(BASE_API_PATH + "/" + book.getId())
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+            );
 
             // Assert
             result.andExpect(status().isUnprocessableEntity())
@@ -554,7 +594,9 @@ class BookControllerIntegrationTest {
         @DisplayName("Should return HTTP 404 for non-existent book")
         void shouldReturnHttp404ForNonExistentBook() throws Exception {
             // Act
-            ResultActions result = mockMvc.perform(delete(BASE_API_PATH + "/99999"));
+            ResultActions result = mockMvc.perform(delete(BASE_API_PATH + "/99999")
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+            );
 
             // Assert
             result.andExpect(status().isNotFound())
@@ -570,16 +612,22 @@ class BookControllerIntegrationTest {
             Book book = createBook("Hidden Book", "978-0-13-475822-0", category, author);
 
             // Verify book is in the list before deletion
-            mockMvc.perform(get(BASE_API_PATH))
+            mockMvc.perform(get(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+            )
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content[*].title", hasItem("Hidden Book")));
 
             // Act - Delete the book
-            mockMvc.perform(delete(BASE_API_PATH + "/" + book.getId()))
+            mockMvc.perform(delete(BASE_API_PATH + "/" + book.getId())
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+            )
                     .andExpect(status().isNoContent());
 
             // Assert - Verify book is NOT in the list after deletion
-            mockMvc.perform(get(BASE_API_PATH))
+            mockMvc.perform(get(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+            )
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content[*].title", not(hasItem("Hidden Book"))));
         }
@@ -600,6 +648,8 @@ class BookControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(get(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .param("page", "0")
                     .param("size", "10"));
 
@@ -622,6 +672,8 @@ class BookControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(get(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .param("page", "0")
                     .param("size", "10"));
 
@@ -653,6 +705,8 @@ class BookControllerIntegrationTest {
 
             // Act
             ResultActions result = mockMvc.perform(get(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .param("page", "0")
                     .param("size", "2"));
 
@@ -667,6 +721,8 @@ class BookControllerIntegrationTest {
         void shouldReturnEmptyPageWhenNoBooksExist() throws Exception {
             // Act - Request page 100 (likely empty)
             ResultActions result = mockMvc.perform(get(BASE_API_PATH)
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+
                     .param("page", "100")
                     .param("size", "10"));
 
