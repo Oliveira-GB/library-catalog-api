@@ -17,12 +17,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.HashMap;
@@ -45,6 +48,7 @@ import java.util.Map;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class GlobalExceptionHandler {
 
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
     private static final String BASE_ERROR_URI = "https://api.library-catalog.com/errors/";
 
     /**
@@ -224,6 +228,54 @@ public class GlobalExceptionHandler {
         problemDetail.setType(URI.create(BASE_ERROR_URI + "forbidden"));
         problemDetail.setTitle("Forbidden");
         problemDetail.setInstance(URI.create(extractRequestPath(request)));
+
+        return problemDetail;
+    }
+
+    /**
+     * Handles malformed or unreadable request bodies (e.g., invalid JSON).
+     * Returns HTTP 400 with a sanitized RFC 7807 response.
+     *
+     * @param ex the message not readable exception
+     * @param request the current web request
+     * @return ProblemDetail with RFC 7807 structure
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ProblemDetail handleHttpMessageNotReadable(HttpMessageNotReadableException ex, WebRequest request) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                "The request body is malformed or could not be read. Please verify the JSON syntax and data types."
+        );
+
+        problemDetail.setType(URI.create(BASE_ERROR_URI + "malformed-request"));
+        problemDetail.setTitle("Malformed Request");
+        problemDetail.setInstance(URI.create(extractRequestPath(request)));
+
+        return problemDetail;
+    }
+
+    /**
+     * Generic fallback handler for all unmapped exceptions.
+     * Returns HTTP 500 with a sanitized RFC 7807 response.
+     * Internal exception details are logged server-side but never exposed to the client.
+     *
+     * @param ex the unexpected exception
+     * @param request the current web request
+     * @return ProblemDetail with RFC 7807 structure and generic safe message
+     */
+    @ExceptionHandler(Exception.class)
+    public ProblemDetail handleGenericException(Exception ex, WebRequest request) {
+        String requestPath = extractRequestPath(request);
+        log.error("Unhandled exception occurred at {}", requestPath, ex);
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "An unexpected internal server error occurred. Please try again later or contact support."
+        );
+
+        problemDetail.setType(URI.create(BASE_ERROR_URI + "internal-server-error"));
+        problemDetail.setTitle("Internal Server Error");
+        problemDetail.setInstance(URI.create(requestPath));
 
         return problemDetail;
     }

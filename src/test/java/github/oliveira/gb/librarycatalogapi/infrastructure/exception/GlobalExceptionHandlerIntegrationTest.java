@@ -308,4 +308,63 @@ class GlobalExceptionHandlerIntegrationTest {
                     .andExpect(jsonPath("$").exists());
         }
     }
+
+    @Nested
+    @DisplayName("Generic Server Error Tests (HTTP 500)")
+    class GenericServerErrorTests {
+
+        @Test
+        @DisplayName("Should return RFC 7807 response with HTTP 500 for unhandled exception")
+        void shouldReturnRfc7807ResponseWithHttp500ForUnhandledException() throws Exception {
+            // Act
+            ResultActions result = mockMvc.perform(get(BASE_API_PATH + "/server-error")
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+            );
+
+            // Assert
+            result.andExpect(status().isInternalServerError())
+                    .andExpect(jsonPath("$.type").value("https://api.library-catalog.com/errors/internal-server-error"))
+                    .andExpect(jsonPath("$.title").value("Internal Server Error"))
+                    .andExpect(jsonPath("$.status").value(500))
+                    .andExpect(jsonPath("$.detail").value("An unexpected internal server error occurred. Please try again later or contact support."))
+                    .andExpect(jsonPath("$.instance").exists());
+        }
+
+        @Test
+        @DisplayName("Should not expose internal stack trace in 500 error response body")
+        void shouldNotExposeInternalStackTraceIn500ErrorResponseBody() throws Exception {
+            // Act
+            ResultActions result = mockMvc.perform(get(BASE_API_PATH + "/server-error")
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+            );
+
+            // Assert
+            String responseContent = result.andReturn().getResponse().getContentAsString();
+
+            assertFalse(responseContent.toLowerCase().contains("stacktrace"));
+            assertFalse(responseContent.toLowerCase().contains("stack trace"));
+            assertFalse(responseContent.contains("Critical internal failure"));
+            assertFalse(responseContent.contains("RuntimeException"));
+            assertFalse(responseContent.contains("database connection pool"));
+            assertFalse(responseContent.contains("exhausted"));
+            assertFalse(responseContent.contains("DummyController"));
+            assertFalse(responseContent.contains("GlobalExceptionHandler"));
+        }
+
+        @Test
+        @DisplayName("Should not expose exception class name in 500 error response body")
+        void shouldNotExposeExceptionClassNameIn500ErrorResponseBody() throws Exception {
+            // Act
+            ResultActions result = mockMvc.perform(get(BASE_API_PATH + "/server-error")
+                    .with(SecurityMockMvcRequestPostProcessors.httpBasic(AUTH_USER, AUTH_PASS))
+            );
+
+            // Assert
+            String responseContent = result.andReturn().getResponse().getContentAsString();
+
+            assertFalse(responseContent.contains("java.lang."));
+            assertFalse(responseContent.contains("NullPointerException"));
+            assertFalse(responseContent.contains("IllegalStateException"));
+        }
+    }
 }
