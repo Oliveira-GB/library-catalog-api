@@ -47,4 +47,14 @@ public class DummyController {
     public ResponseEntity<String> createWithConflict() {
         throw new DataIntegrityViolationException("Unique constraint violation on table books column isbn");
     }
+
+    /**
+     * Triggers a generic RuntimeException to test HTTP 500 fallback handling.
+     *
+     * @return never returns successfully - always throws exception
+     */
+    @GetMapping("/server-error")
+    public ResponseEntity<String> triggerServerError() {
+        throw new RuntimeException("Critical internal failure: database connection pool exhausted");
+    }
 }
